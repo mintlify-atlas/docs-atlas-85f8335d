@@ -1,0 +1,104 @@
+{
+  "projectType": "saas",
+  "projectName": "Popcorn Vision",
+  "projectDescription": "A full-featured movie and TV show streaming and discovery platform with user accounts, watchlists, and personalized recommendations.",
+  "theme": "almond",
+  "primaryColor": "#E74C3C",
+  "lightColor": "#F39C12",
+  "darkColor": "#C0392B",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/browse-discover",
+              "features/search-filters",
+              "features/user-account",
+              "features/watchlist-favorites",
+              "features/rating-system"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/environment",
+              "configuration/tmdb-api",
+              "configuration/deployment"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "components/film",
+              "components/search",
+              "components/user",
+              "components/layout"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Routes",
+            "pages": [
+              "api/authentication",
+              "api/account",
+              "api/search",
+              "api/tmdb-integration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Contributing",
+        "groups": [
+          {
+            "group": "Development",
+            "pages": [
+              "contributing/development-guide",
+              "contributing/code-style",
+              "contributing/guidelines"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "TMDB API authentication for user accounts",
+    "Save favorites and manage watchlists",
+    "Advanced search with multiple filters (genre, date, platform, cast, crew)",
+    "Detailed movie and TV show information with trailers",
+    "User ratings and personalized recommendations",
+    "TV show season and episode tracking",
+    "Responsive Next.js 14 application with React",
+    "Modern UI with DaisyUI, Tailwind CSS, and Material UI"
+  ],
+  "publicApiSurface": [
+    "/api/authentication/login",
+    "/api/authentication/logout",
+    "/api/authentication/token/new",
+    "/api/authentication/token/validate_with_login",
+    "/api/account/*",
+    "/api/search/filter",
+    "/api/search/query",
+    "userStore (Zustand state management)",
+    "axios (TMDB API client)",
+    "Film components (HomeSlider, FilmSlider, Trending)",
+    "Search components (filters and query)",
+    "User components (LoginButton, LogoutButton, Location)"
+  ]
+}
