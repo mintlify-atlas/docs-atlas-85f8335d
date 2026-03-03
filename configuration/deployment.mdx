@@ -1,0 +1,710 @@
+---
+title: 'Deployment'
+description: 'Deploy Popcorn Vision to production with Vercel, Netlify, or self-hosted options'
+icon: 'rocket'
+---
+
+## Overview
+
+Popcorn Vision is built with Next.js 14, making it deployable to any platform that supports Next.js applications. This guide covers deployment to popular platforms and self-hosted environments.
+
+<Note>
+  Popcorn Vision uses Next.js App Router and requires a platform that supports Next.js 14+ features.
+</Note>
+
+## Quick Deploy Options
+
+<CardGroup cols={3}>
+  <Card title="Vercel" icon="triangle" color="#000000">
+    **Recommended**
+    
+    Zero-config deployment with automatic optimizations. Best for Next.js apps.
+  </Card>
+  <Card title="Netlify" icon="diamond" color="#00C7B7">
+    **Easy Setup**
+    
+    Simple deployment with good Next.js support via their plugin.
+  </Card>
+  <Card title="Self-Hosted" icon="server" color="#5865F2">
+    **Full Control**
+    
+    Deploy to your own VPS, Docker container, or cloud provider.
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+Before deploying, ensure you have:
+
+<Steps>
+  <Step title="TMDB API Credentials">
+    Obtain your API key and Read Access Token from TMDB. See [TMDB API Setup](/configuration/tmdb-api) for details.
+  </Step>
+  
+  <Step title="Environment Variables Ready">
+    Prepare all required environment variables from [Environment Configuration](/configuration/environment).
+  </Step>
+  
+  <Step title="Code Repository">
+    Push your code to a Git repository (GitHub, GitLab, or Bitbucket).
+  </Step>
+  
+  <Step title="Test Locally">
+    Verify the production build works locally:
+    
+    ```bash
+    npm run build
+    npm start
+    ```
+  </Step>
+</Steps>
+
+## Deploy to Vercel
+
+Vercel is the recommended platform for Next.js applications, offering zero-config deployment and automatic optimizations.
+
+### One-Click Deploy
+
+The fastest way to deploy:
+
+<Steps>
+  <Step title="Click Deploy Button">
+    Use the Deploy to Vercel button from the Popcorn Vision repository (if available), or manually import:
+    
+    1. Go to [Vercel](https://vercel.com/)
+    2. Click **Add New > Project**
+    3. Import your Git repository
+  </Step>
+  
+  <Step title="Configure Environment Variables">
+    In the Vercel project setup, add your environment variables:
+    
+    ```bash
+    API_URL=https://api.themoviedb.org/3
+    API_KEY=your_tmdb_api_key
+    API_READ=your_tmdb_read_token
+    GA_MEASUREMENT_ID=G-XXXXXXXXXX
+    ```
+    
+    <Warning>
+      Do not add `NEXT_PUBLIC_API_IMAGE_*` variables here unless you need to override them. They're already set in your codebase.
+    </Warning>
+  </Step>
+  
+  <Step title="Deploy">
+    Click **Deploy** and wait for the build to complete.
+    
+    Vercel will:
+    - Install dependencies
+    - Build your Next.js application
+    - Deploy to a production URL
+    - Generate preview URLs for pull requests
+  </Step>
+  
+  <Step title="Configure Custom Domain (Optional)">
+    After deployment:
+    1. Go to your project settings
+    2. Navigate to **Domains**
+    3. Add your custom domain
+    4. Update DNS records as instructed
+  </Step>
+</Steps>
+
+### Manual CLI Deploy
+
+Deploy using Vercel CLI:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy to production
+vercel --prod
+```
+
+### Vercel Configuration
+
+Popcorn Vision works with default Vercel settings, but you can customize with `vercel.json`:
+
+```json vercel.json
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "API_URL": "https://api.themoviedb.org/3"
+  }
+}
+```
+
+<Tip>
+  Vercel automatically detects Next.js and uses optimal build settings. You rarely need a `vercel.json` file.
+</Tip>
+
+## Deploy to Netlify
+
+Netlify supports Next.js through their Essential Next.js plugin.
+
+<Steps>
+  <Step title="Connect Repository">
+    1. Log in to [Netlify](https://www.netlify.com/)
+    2. Click **Add new site > Import an existing project**
+    3. Connect your Git provider and select your repository
+  </Step>
+  
+  <Step title="Configure Build Settings">
+    Netlify should auto-detect Next.js. Verify these settings:
+    
+    **Build command:** `npm run build` or `pnpm build`
+    
+    **Publish directory:** `.next`
+    
+    **Functions directory:** `.netlify/functions`
+  </Step>
+  
+  <Step title="Add Environment Variables">
+    In **Site settings > Environment variables**, add:
+    
+    ```bash
+    API_URL=https://api.themoviedb.org/3
+    API_KEY=your_tmdb_api_key
+    API_READ=your_tmdb_read_token
+    GA_MEASUREMENT_ID=G-XXXXXXXXXX
+    ```
+  </Step>
+  
+  <Step title="Enable Next.js Plugin">
+    The Essential Next.js plugin should be automatically enabled. If not:
+    
+    1. Go to **Integrations**
+    2. Search for "Essential Next.js"
+    3. Install and enable the plugin
+  </Step>
+  
+  <Step title="Deploy">
+    Click **Deploy site** and wait for the build to complete.
+  </Step>
+</Steps>
+
+### Netlify Configuration
+
+Create a `netlify.toml` file in your project root:
+
+```toml netlify.toml
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+## Self-Hosted Deployment
+
+Deploy Popcorn Vision to your own infrastructure.
+
+### Using Node.js Server
+
+<Steps>
+  <Step title="Build the Application">
+    ```bash
+    npm run build
+    ```
+    
+    This creates an optimized production build in `.next/` directory.
+  </Step>
+  
+  <Step title="Set Environment Variables">
+    On your server, create a `.env.production` file:
+    
+    ```bash
+    API_URL=https://api.themoviedb.org/3
+    API_KEY=your_tmdb_api_key
+    API_READ=your_tmdb_read_token
+    NEXT_PUBLIC_API_IMAGE_500=https://image.tmdb.org/t/p/w500
+    # ... all other variables
+    ```
+  </Step>
+  
+  <Step title="Start the Production Server">
+    ```bash
+    npm start
+    ```
+    
+    By default, this runs on `http://localhost:3000`.
+  </Step>
+  
+  <Step title="Use a Process Manager">
+    Keep the application running with PM2:
+    
+    ```bash
+    # Install PM2
+    npm install -g pm2
+    
+    # Start the app
+    pm2 start npm --name "popcorn-vision" -- start
+    
+    # Save PM2 configuration
+    pm2 save
+    
+    # Set PM2 to start on boot
+    pm2 startup
+    ```
+  </Step>
+  
+  <Step title="Configure Reverse Proxy">
+    Use Nginx or Apache to proxy requests to your Next.js server.
+    
+    **Nginx example:**
+    
+    ```nginx
+    server {
+      listen 80;
+      server_name your-domain.com;
+      
+      location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### Using Docker
+
+Deploy with Docker for containerized deployment:
+
+<CodeGroup>
+```dockerfile Dockerfile
+FROM node:18-alpine AS base
+
+# Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml* ./
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+
+# Build the application
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN corepack enable pnpm && pnpm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+
+CMD ["node", "server.js"]
+```
+
+```yaml docker-compose.yml
+version: '3.8'
+
+services:
+  popcorn-vision:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=https://api.themoviedb.org/3
+      - API_KEY=${API_KEY}
+      - API_READ=${API_READ}
+      - GA_MEASUREMENT_ID=${GA_MEASUREMENT_ID}
+    restart: unless-stopped
+    env_file:
+      - .env.production
+```
+
+```bash .env.production
+# Copy your production environment variables here
+API_URL=https://api.themoviedb.org/3
+API_KEY=your_tmdb_api_key
+API_READ=your_tmdb_read_token
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+</CodeGroup>
+
+**Build and run:**
+
+```bash
+# Build the Docker image
+docker build -t popcorn-vision .
+
+# Run the container
+docker run -p 3000:3000 --env-file .env.production popcorn-vision
+
+# Or use docker-compose
+docker-compose up -d
+```
+
+<Note>
+  You'll need to enable Next.js standalone output in `next.config.mjs` for Docker:
+  
+  ```javascript
+  const nextConfig = {
+    output: 'standalone',
+    // ... other config
+  };
+  ```
+</Note>
+
+## Build Configuration
+
+Popcorn Vision's build configuration is defined in `next.config.mjs`:
+
+```javascript next.config.mjs
+const nextConfig = {
+  reactStrictMode: false,
+  experimental: {
+    staleTimes: {
+      dynamic: 3600,  // Cache dynamic data for 1 hour
+      static: 3600,   // Cache static data for 1 hour
+    },
+  },
+};
+
+export default nextConfig;
+```
+
+### Key Configuration Options
+
+<ParamField path="reactStrictMode" type="boolean" default="false">
+  React Strict Mode for identifying potential problems. Disabled by default for production performance.
+</ParamField>
+
+<ParamField path="experimental.staleTimes.dynamic" type="number" default="3600">
+  Cache duration (in seconds) for dynamic routes. Set to 3600 (1 hour) to reduce TMDB API calls.
+</ParamField>
+
+<ParamField path="experimental.staleTimes.static" type="number" default="3600">
+  Cache duration (in seconds) for static routes. Helps with build-time optimizations.
+</ParamField>
+
+### Optional Optimizations
+
+For production deployments, consider these additional options:
+
+```javascript next.config.mjs
+const nextConfig = {
+  reactStrictMode: false,
+  
+  // Image optimization
+  images: {
+    domains: ['image.tmdb.org'],
+    formats: ['image/avif', 'image/webp'],
+  },
+  
+  // Standalone output for Docker
+  output: 'standalone',
+  
+  // Compression
+  compress: true,
+  
+  // Experimental features
+  experimental: {
+    staleTimes: {
+      dynamic: 3600,
+      static: 3600,
+    },
+  },
+  
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ];
+  },
+};
+```
+
+## Performance Optimization
+
+<AccordionGroup>
+  <Accordion title="Enable Image Optimization">
+    Configure Next.js Image component to use TMDB's CDN:
+    
+    ```javascript next.config.mjs
+    const nextConfig = {
+      images: {
+        domains: ['image.tmdb.org'],
+        formats: ['image/avif', 'image/webp'],
+        minimumCacheTTL: 86400, // Cache images for 24 hours
+      },
+    };
+    ```
+  </Accordion>
+  
+  <Accordion title="Configure Caching Strategy">
+    Popcorn Vision uses aggressive caching to minimize API calls:
+    
+    - **Static content:** Cached indefinitely
+    - **Dynamic routes:** Revalidated every hour
+    - **API responses:** Cached for 1 hour
+    
+    Adjust `staleTimes` in `next.config.mjs` based on your needs.
+  </Accordion>
+  
+  <Accordion title="Use CDN for Static Assets">
+    Deploy static assets (images, CSS, JS) to a CDN:
+    
+    ```javascript next.config.mjs
+    const nextConfig = {
+      assetPrefix: process.env.CDN_URL || '',
+    };
+    ```
+    
+    Then set `CDN_URL` environment variable to your CDN domain.
+  </Accordion>
+  
+  <Accordion title="Enable Compression">
+    Ensure gzip/brotli compression is enabled:
+    
+    ```javascript next.config.mjs
+    const nextConfig = {
+      compress: true, // Enable gzip compression
+    };
+    ```
+    
+    Most hosting platforms (Vercel, Netlify) enable this automatically.
+  </Accordion>
+  
+  <Accordion title="Monitor Performance">
+    Use Google Analytics (configured via `GA_MEASUREMENT_ID`) or integrate other monitoring tools:
+    
+    - Vercel Analytics
+    - Sentry for error tracking
+    - LogRocket for session replay
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Build Fails with Environment Variable Errors">
+    **Problem:** Build fails with "API_KEY is not defined" or similar.
+    
+    **Solution:**
+    Ensure environment variables are set in your deployment platform:
+    - **Vercel:** Project Settings > Environment Variables
+    - **Netlify:** Site Settings > Environment Variables
+    - **Self-hosted:** Set in `.env.production` file
+    
+    Required variables:
+    - `API_URL`
+    - `API_KEY`
+    - `API_READ`
+    - All `NEXT_PUBLIC_API_IMAGE_*` variables
+  </Accordion>
+  
+  <Accordion title="Images Not Loading in Production">
+    **Problem:** Movie posters show broken image icons.
+    
+    **Solutions:**
+    1. Verify `NEXT_PUBLIC_API_IMAGE_*` variables are set
+    2. Check image domain is allowed in `next.config.mjs`:
+       ```javascript
+       images: {
+         domains: ['image.tmdb.org'],
+       }
+       ```
+    3. Ensure TMDB CDN is accessible from your deployment region
+  </Accordion>
+  
+  <Accordion title="API Requests Failing (CORS Errors)">
+    **Problem:** API calls fail with CORS errors in production.
+    
+    **Cause:** Direct client-side calls to TMDB API.
+    
+    **Solution:**
+    Always use Popcorn Vision's API routes (`/api/*`) instead of calling TMDB directly. These routes proxy requests server-side, avoiding CORS issues.
+  </Accordion>
+  
+  <Accordion title="Slow Performance or Timeout Errors">
+    **Problem:** Pages load slowly or time out.
+    
+    **Solutions:**
+    1. **Enable caching:** Verify `staleTimes` configuration in `next.config.mjs`
+    2. **Optimize API calls:** Reduce the number of API requests per page
+    3. **Use a faster deployment region:** Choose a region closer to TMDB servers (US East)
+    4. **Implement Redis caching:** Cache API responses externally
+  </Accordion>
+  
+  <Accordion title="Application Crashes or Restarts">
+    **Problem:** Application frequently crashes in production.
+    
+    **Solutions:**
+    1. Check memory usage - increase if needed
+    2. Review error logs for uncaught exceptions
+    3. Enable error tracking (Sentry, LogRocket)
+    4. Use a process manager (PM2) for automatic restarts
+    5. Check for rate limiting from TMDB API
+  </Accordion>
+  
+  <Accordion title="Custom Domain Not Working">
+    **Problem:** Custom domain shows SSL or DNS errors.
+    
+    **Solutions:**
+    1. **Verify DNS records:** Ensure A/CNAME records point to your host
+    2. **Wait for propagation:** DNS changes can take 24-48 hours
+    3. **SSL certificate:** Most platforms auto-generate SSL certs
+    4. **Update environment:** Set production URL in your config if needed
+  </Accordion>
+</AccordionGroup>
+
+## Security Best Practices
+
+<Warning>
+  Always follow these security guidelines for production deployments.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Protect API Credentials">
+    - Never commit `.env.local` or `.env.production` to Git
+    - Use platform environment variables for secrets
+    - Rotate API keys periodically
+    - Use different keys for development and production
+  </Accordion>
+  
+  <Accordion title="Enable Security Headers">
+    Add security headers in `next.config.mjs`:
+    
+    ```javascript
+    async headers() {
+      return [
+        {
+          source: '/(.*)',
+          headers: [
+            { key: 'X-Content-Type-Options', value: 'nosniff' },
+            { key: 'X-Frame-Options', value: 'DENY' },
+            { key: 'X-XSS-Protection', value: '1; mode=block' },
+            {
+              key: 'Strict-Transport-Security',
+              value: 'max-age=31536000; includeSubDomains',
+            },
+          ],
+        },
+      ];
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Rate Limiting">
+    Popcorn Vision includes built-in rate limiting. For high-traffic sites, consider:
+    - Implementing Redis-based rate limiting
+    - Using a CDN with DDoS protection (Cloudflare)
+    - Adding IP-based request throttling
+  </Accordion>
+  
+  <Accordion title="Monitor for Suspicious Activity">
+    - Enable access logs
+    - Set up alerts for unusual traffic patterns
+    - Monitor API usage on TMDB dashboard
+    - Use error tracking to catch security issues
+  </Accordion>
+</AccordionGroup>
+
+## Post-Deployment Checklist
+
+After deploying, verify everything works correctly:
+
+<Steps>
+  <Step title="Test Core Functionality">
+    - [ ] Homepage loads with trending movies
+    - [ ] Search functionality works
+    - [ ] Movie detail pages display correctly
+    - [ ] Images load properly
+    - [ ] Navigation between pages works
+  </Step>
+  
+  <Step title="Verify API Integration">
+    - [ ] TMDB API calls succeed (check browser Network tab)
+    - [ ] No 401 authentication errors
+    - [ ] Rate limiting is working correctly
+    - [ ] Caching is active (check response headers)
+  </Step>
+  
+  <Step title="Check Performance">
+    - [ ] Page load time < 3 seconds
+    - [ ] Lighthouse score > 90
+    - [ ] Images are optimized
+    - [ ] No console errors
+  </Step>
+  
+  <Step title="Test on Multiple Devices">
+    - [ ] Desktop browsers (Chrome, Firefox, Safari)
+    - [ ] Mobile devices (iOS, Android)
+    - [ ] Different screen sizes
+    - [ ] Dark mode compatibility
+  </Step>
+  
+  <Step title="Configure Monitoring">
+    - [ ] Google Analytics tracking (if configured)
+    - [ ] Error tracking enabled
+    - [ ] Uptime monitoring
+    - [ ] Performance monitoring
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/configuration/environment">
+    Review all environment variable configuration options
+  </Card>
+  <Card title="TMDB API" icon="key" href="/configuration/tmdb-api">
+    Learn more about TMDB API usage and best practices
+  </Card>
+</CardGroup>

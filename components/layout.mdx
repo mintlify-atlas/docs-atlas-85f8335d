@@ -1,0 +1,541 @@
+---
+title: Layout Components
+description: Navigation, footer, and structural layout components
+---
+
+## Overview
+
+Layout components provide the structural foundation for Popcorn Vision, including the navigation bar, footer, and various UI utilities. These components create a consistent user experience across all pages.
+
+## Navbar
+
+Main navigation component with search, movie/TV switcher, and user authentication.
+
+### Features
+
+<CardGroup cols={2}>
+  <Card title="Sticky Header" icon="thumbtack">
+    Fixed position with scroll-based blur effect
+  </Card>
+  
+  <Card title="Search Integration" icon="magnifying-glass">
+    Built-in SearchBar component
+  </Card>
+  
+  <Card title="Content Switcher" icon="toggle-on">
+    Movies/TV Shows toggle
+  </Card>
+  
+  <Card title="Auth State" icon="user">
+    LoginButton or LogoutButton based on auth
+  </Card>
+</CardGroup>
+
+### Implementation
+
+```jsx Layout/Navbar.jsx
+import { useAuth } from "@/hooks/auth";
+import { useScroll, useTransform, motion } from "framer-motion";
+import LoginButton from "../User/LoginButton";
+import LogoutButton from "../User/LogoutButton";
+import { SearchBar } from "./SearchBar";
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const { scrollY } = useScroll();
+
+  // Smooth transitions based on scroll position
+  const backgroundOpacity = useTransform(scrollY, [0, 100], [0, 0.85]);
+  const blurAmount = useTransform(scrollY, [0, 100], [0, 8]);
+
+  const isMoviesPage = pathname.startsWith("/movies") || pathname === "/";
+  const isTvPage = pathname.startsWith("/tv");
+  const isSearchPage = pathname.startsWith(!isTvPage ? `/search` : `/tv/search`);
+  const isProfilePage = pathname.startsWith("/profile");
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-[60]">
+      {/* Blur background */}
+      <motion.div
+        className="absolute inset-0 -z-10 bg-base-100"
+        style={{
+          background: useTransform(
+            backgroundOpacity,
+            (value) => `rgba(19, 23, 32, ${value})`
+          ),
+          backdropFilter: useTransform(
+            blurAmount,
+            (value) => `blur(${value}px)`
+          ),
+        }}
+      />
+
+      <nav className="mx-auto grid max-w-none grid-cols-[auto_1fr_auto] gap-4 px-4 py-2 lg:!grid-cols-3">
+        {/* Logo */}
+        <Link href={isTvPage ? `/tv` : `/`} className="flex items-center gap-1">
+          <figure className="aspect-square w-[50px]" />
+          <figcaption className="w-[70px]">{siteConfig.name}</figcaption>
+        </Link>
+
+        {/* Search bar - desktop */}
+        <div className="hidden sm:block">
+          <SearchBar />
+        </div>
+
+        {/* Right side: search (mobile), switcher, auth */}
+        <div className="flex items-center gap-2">
+          {/* Mobile search link */}
+          <Link href={!isTvPage ? `/search` : `/tv/search`} className="sm:hidden">
+            <IonIcon icon={search} />
+          </Link>
+
+          {/* Movie/TV Switcher */}
+          <div className="flex gap-1 rounded-full bg-neutral bg-opacity-50 p-1">
+            <Link
+              href={!isSearchPage ? `/` : `/search`}
+              className={`flex items-center gap-2 rounded-full px-2 py-2 ${
+                isMoviesPage && "bg-white text-base-100"
+              }`}
+            >
+              <IonIcon icon={filmOutline} />
+              <span className="hidden lg:block">Movies</span>
+            </Link>
+            
+            <Link
+              href={!isSearchPage ? `/tv` : `/tv/search`}
+              className={`flex items-center gap-2 rounded-full px-2 py-2 ${
+                isTvPage && "bg-white text-base-100"
+              }`}
+            >
+              <IonIcon icon={tvOutline} />
+              <span className="hidden lg:block">TV Shows</span>
+            </Link>
+          </div>
+
+          {/* Auth button */}
+          {!user ? <LoginButton /> : <LogoutButton user={user} />}
+        </div>
+      </nav>
+    </header>
+  );
+}
+```
+
+### Scroll Effect
+
+<Accordion title="Framer Motion Integration">
+  The navbar uses Framer Motion for smooth scroll-based animations:
+  
+  ```jsx
+  const { scrollY } = useScroll();
+  
+  // Map scroll position to opacity (0 to 0.85)
+  const backgroundOpacity = useTransform(scrollY, [0, 100], [0, 0.85]);
+  
+  // Map scroll position to blur amount (0px to 8px)
+  const blurAmount = useTransform(scrollY, [0, 100], [0, 8]);
+  ```
+  
+  This creates a glass-morphism effect as the user scrolls down.
+</Accordion>
+
+### Navigation States
+
+The navbar adapts based on the current route:
+
+<Tabs>
+  <Tab title="Movies Page">
+    - Movies button highlighted
+    - Search directs to `/search`
+    - Logo links to `/`
+  </Tab>
+  
+  <Tab title="TV Page">
+    - TV Shows button highlighted
+    - Search directs to `/tv/search`
+    - Logo links to `/tv`
+  </Tab>
+  
+  <Tab title="Profile Page">
+    - Maintains movie/TV preference from query params
+    - Search respects user's current type preference
+  </Tab>
+</Tabs>
+
+---
+
+## Footer
+
+Comprehensive footer with navigation links, social media, and legal information.
+
+### Structure
+
+```jsx Layout/Footer.jsx
+import { usePathname } from "next/navigation";
+import dayjs from "dayjs";
+import { siteConfig } from "@/config/site";
+
+export default function Footer() {
+  const pathname = usePathname();
+  const isTvPage = pathname.startsWith("/tv");
+  
+  const today = dayjs();
+  const tomorrow = today.add(1, "days").format("YYYY-MM-DD");
+  const endOfNextYear = today.add(1, "year").endOf("year").format("YYYY-MM-DD");
+
+  const footerLinks = [
+    {
+      title: "Explore",
+      links: [
+        { name: "Movies", href: "/" },
+        { name: "TV Shows", href: "/tv" },
+        { name: "Top Rated Movies", href: "/search?sort_by=vote_count.desc" },
+        { 
+          name: "Upcoming Movies", 
+          href: `/search?release_date=${tomorrow}..${endOfNextYear}` 
+        },
+      ],
+    },
+    {
+      title: "Search",
+      links: [
+        { name: "Filters", href: `${isTvPage ? "/tv" : ""}/search` },
+        { name: "Genres", href: `${isTvPage ? "/tv" : ""}/search?with_genres=16` },
+        { name: "Actors", href: `${isTvPage ? "/tv" : ""}/search?with_cast=6384` },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { name: "Terms of Service", href: `/legal/terms` },
+        { name: "Privacy Policy", href: `/legal/privacy` },
+      ],
+    },
+  ];
+
+  return (
+    <footer className="mx-auto flex max-w-7xl flex-col px-4 pt-8">
+      {/* Logo section */}
+      <div className="flex flex-col items-center pb-8">
+        <figure className="aspect-square w-[200px]" />
+        <figcaption className="text-4xl font-bold">Popcorn Vision</figcaption>
+      </div>
+      
+      {/* Links grid */}
+      <div className="grid grid-cols-1 gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        {footerLinks.map((footer) => (
+          <div key={footer.title}>
+            <h2 className="mb-2 text-xl font-bold">{footer.title}</h2>
+            <ul>
+              {footer.links.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href}>{link.name}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        
+        {/* Social media */}
+        <div>
+          <h2 className="mb-2 text-xl font-bold">Get in Touch</h2>
+          <div className="flex gap-2">
+            <button onClick={() => handleOpenWindow(`https://github.com/...`)}>
+              <IonIcon icon={logoGithub} />
+            </button>
+            <button onClick={() => handleOpenWindow(`https://twitter.com/...`)}>
+              <IonIcon icon={logoTwitter} />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Copyright */}
+      <div className="border-t border-secondary p-4 text-center">
+        <span>{siteConfig.name} © 2023-2024 all rights reserved</span>
+        <span>Powered by TMDB</span>
+      </div>
+    </footer>
+  );
+}
+```
+
+### Dynamic Links
+
+Footer links adapt based on the current page type (movies vs TV shows):
+
+```jsx
+const isTvPage = pathname.startsWith("/tv");
+
+// Genres link changes based on page type
+{ 
+  name: "Genres", 
+  href: `${isTvPage ? "/tv" : ""}/search?with_genres=16` 
+}
+```
+
+---
+
+## Utility Components
+
+### ProgressBarProvider
+
+Provides a loading progress bar during page transitions.
+
+```jsx Layout/ProgressBarProvider.jsx
+import { ProgressBar } from "@bprogress/next";
+
+export default function ProgressBarProvider({ children }) {
+  return (
+    <>
+      <ProgressBar
+        shallowRouting
+        color="#3b82f6"
+        height="3px"
+        options={{ showSpinner: false }}
+      />
+      {children}
+    </>
+  );
+}
+```
+
+<Info>
+  The `@bprogress/next` library provides a thin loading bar at the top of the page during Next.js route changes.
+</Info>
+
+---
+
+### Reveal
+
+Animation component for revealing content on scroll.
+
+```jsx Layout/Reveal.jsx
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+
+export default function Reveal({ children, className }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.5 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+```
+
+**Usage**:
+```jsx
+<Reveal>
+  <h2>This fades in when scrolled into view</h2>
+</Reveal>
+```
+
+---
+
+### IsInViewport
+
+Hook-based component for detecting when elements enter the viewport.
+
+```jsx Layout/IsInViewport.jsx
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+
+export default function IsInViewport({ children, onEnterViewport }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (isInView && onEnterViewport) {
+      onEnterViewport();
+    }
+  }, [isInView, onEnterViewport]);
+
+  return <div ref={ref}>{children}</div>;
+}
+```
+
+**Usage**:
+```jsx
+<IsInViewport onEnterViewport={() => console.log("Visible!")}>
+  <LazyLoadedComponent />
+</IsInViewport>
+```
+
+---
+
+### WatchButton
+
+Common button component used throughout the app.
+
+```jsx Layout/WatchButton.jsx
+export default function WatchButton({ href, children, className }) {
+  return (
+    <Link
+      href={href}
+      className={`btn btn-primary rounded-full ${className}`}
+    >
+      {children}
+    </Link>
+  );
+}
+```
+
+---
+
+## Responsive Design Patterns
+
+### Mobile Navigation
+
+On mobile devices, the search bar is replaced with a search icon that links to the dedicated search page:
+
+```jsx
+{/* Desktop: inline search */}
+<div className="hidden sm:block">
+  <SearchBar />
+</div>
+
+{/* Mobile: search link */}
+<Link href="/search" className="sm:hidden">
+  <IonIcon icon={search} />
+</Link>
+```
+
+### Responsive Grid
+
+Layout components use a responsive grid system:
+
+```jsx
+<nav className="grid grid-cols-[auto_1fr_auto] lg:!grid-cols-3">
+  {/* Mobile: auto | 1fr | auto */}
+  {/* Desktop: 1fr | 1fr | 1fr */}
+</nav>
+```
+
+---
+
+## Configuration
+
+### Site Config
+
+```js config/site.js
+export const siteConfig = {
+  name: "Popcorn Vision",
+  description: "Discover movies and TV shows",
+  url: "https://popcornvision.app",
+  ogImage: "https://popcornvision.app/og.jpg",
+  links: {
+    twitter: "https://twitter.com/...",
+    github: "https://github.com/...",
+  },
+};
+```
+
+### Constants
+
+```js lib/constants.js
+export const POPCORN = "/popcorn-logo.svg";
+export const USER_LOCATION = "user_location";
+```
+
+---
+
+## Layout Hierarchy
+
+<Steps>
+  <Step title="Root Layout">
+    `app/layout.jsx` - Global providers and metadata
+  </Step>
+  
+  <Step title="Navbar">
+    Fixed header with navigation and auth
+  </Step>
+  
+  <Step title="Page Content">
+    Dynamic page content (routes)
+  </Step>
+  
+  <Step title="Footer">
+    Site footer with links and info
+  </Step>
+</Steps>
+
+---
+
+## Key Files
+
+<CodeGroup>
+```text Layout Components
+src/components/Layout/
+├── Navbar.jsx              # Main navigation
+├── Footer.jsx              # Site footer
+├── SearchBar.jsx           # Search component
+├── ProgressBarProvider.jsx # Loading indicator
+├── Reveal.jsx              # Scroll animations
+├── IsInViewport.jsx        # Viewport detection
+├── WatchButton.jsx         # Reusable button
+└── Copyright.jsx           # Copyright notice
+```
+
+```text Configuration
+src/config/
+└── site.js                 # Site metadata
+
+src/lib/
+├── constants.js            # Global constants
+└── openWindow.js           # Window.open helper
+```
+</CodeGroup>
+
+---
+
+## Styling Utilities
+
+Layout components use Tailwind CSS with custom utilities:
+
+### Glass Morphism
+
+```css
+.glass {
+  @apply bg-white bg-opacity-10 backdrop-blur-lg;
+}
+```
+
+### Hover/Focus States
+
+```css
+.hocus {
+  @apply hover:opacity-80 focus:opacity-80;
+}
+```
+
+Usage:
+```jsx
+<button className="hocus:bg-opacity-50">
+  Click me
+</button>
+```
+
+---
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Search Components" href="/components/search">
+    SearchBar and filter integration
+  </Card>
+  
+  <Card title="User Components" href="/components/user">
+    LoginButton and LogoutButton usage
+  </Card>
+</CardGroup>

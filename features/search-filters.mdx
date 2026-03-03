@@ -1,0 +1,358 @@
+---
+title: Search & Filters
+description: Find exactly what you're looking for with advanced search and filtering capabilities
+icon: filter
+---
+
+Popcorn Vision offers powerful search and filtering tools to help you discover content tailored to your preferences.
+
+## Quick Search
+
+The fastest way to find specific movies or TV shows:
+
+<Steps>
+  <Step title="Open Search">
+    Click the search icon in the navigation bar or press `/` on your keyboard
+  </Step>
+  <Step title="Enter Your Query">
+    Type the title of a movie, TV show, or person's name
+  </Step>
+  <Step title="View Results">
+    Results appear instantly as you type, showing matching titles with posters and key information
+  </Step>
+</Steps>
+
+<Warning>
+  When using quick search (query mode), advanced filters are automatically disabled. Clear your search query to use filters.
+</Warning>
+
+## Advanced Search Page
+
+Access the advanced search page for comprehensive filtering:
+
+- **For Movies**: Navigate to `/search`
+- **For TV Shows**: Navigate to `/tv/search`
+
+## Available Filters
+
+### Release Date
+
+Filter content by release date or air date range:
+
+<Info>
+  The release date filter shows the oldest and newest available titles in the database, covering decades of content.
+</Info>
+
+**How to use:**
+1. Click the start date picker to select your minimum release date
+2. Click the end date picker to select your maximum release date
+3. Results update automatically to show only titles within your date range
+
+**Example use cases:**
+- Find classic movies from the 1980s
+- Discover what's coming out next month
+- Browse shows that aired in a specific year
+
+### Streaming Providers
+
+Find content available on your streaming services:
+
+<Tip>
+  The streaming filter automatically detects your location and shows providers available in your region.
+</Tip>
+
+**Supported operators:**
+- **AND**: Shows content available on ALL selected platforms
+- **OR**: Shows content available on ANY of the selected platforms
+
+**Popular providers include:**
+- Netflix
+- Amazon Prime Video
+- Disney+
+- Hulu
+- HBO Max
+- Apple TV+
+- Paramount+
+- And many more based on your region
+
+### Genre
+
+Browse by genre with flexible combinations:
+
+<Tabs>
+  <Tab title="AND Operator">
+    **Use when**: You want content that matches ALL selected genres
+    
+    **Example**: Action AND Comedy = Action comedies only
+    
+    Results are more specific and focused.
+  </Tab>
+  <Tab title="OR Operator">
+    **Use when**: You want content from ANY of the selected genres
+    
+    **Example**: Horror OR Thriller = All horror movies plus all thrillers
+    
+    Results are broader and more diverse.
+  </Tab>
+</Tabs>
+
+**Available genres** include Action, Adventure, Animation, Comedy, Crime, Documentary, Drama, Family, Fantasy, Horror, Mystery, Romance, Sci-Fi, Thriller, and more.
+
+### Networks (TV Shows Only)
+
+Filter TV shows by the network or channel that aired them:
+
+<CardGroup cols={2}>
+  <Card title="Broadcast Networks">
+    ABC, CBS, NBC, FOX, The CW
+  </Card>
+  <Card title="Cable Networks">
+    AMC, FX, TNT, USA Network
+  </Card>
+  <Card title="Premium Channels">
+    HBO, Showtime, Starz
+  </Card>
+  <Card title="Streaming Originals">
+    Netflix, Amazon Prime, Hulu, Disney+
+  </Card>
+</CardGroup>
+
+**Supports AND/OR operators** like the genre filter.
+
+### Cast & Crew (Movies Only)
+
+Find movies featuring specific actors or directors:
+
+#### Actor Filter
+
+1. Click in the Actor field
+2. Start typing an actor's name
+3. Select from the autocomplete suggestions
+4. Add multiple actors using AND/OR operators
+
+**Examples:**
+- **AND**: Movies featuring Leonardo DiCaprio AND Tom Hanks together
+- **OR**: Movies with Leonardo DiCaprio OR Tom Hanks
+
+#### Crew Filter
+
+Similar to the actor filter but for directors, writers, and other crew:
+
+1. Click in the Crew field
+2. Type a director or crew member's name
+3. Select from suggestions
+4. Use AND/OR for multiple selections
+
+<Tip>
+  The search uses intelligent autocomplete that queries TMDB's person database as you type.
+</Tip>
+
+### Production Company
+
+Filter by the studio or production company:
+
+1. Start typing a company name (e.g., "Warner Bros", "Marvel Studios")
+2. Select from autocomplete suggestions
+3. Use AND/OR operators for multiple companies
+
+**Use cases:**
+- Find all Marvel Cinematic Universe films
+- Browse Pixar's complete catalog
+- Discover A24's indie releases
+
+### Language
+
+Filter content by original language:
+
+- English
+- Spanish
+- French
+- Japanese
+- Korean
+- German
+- Italian
+- And many more languages
+
+<Note>
+  The language filter refers to the original language of the content, not dubbed or subtitle options.
+</Note>
+
+### Keywords
+
+Search by keywords and themes:
+
+1. Type a keyword (e.g., "based on novel", "superhero", "time travel")
+2. Select from autocomplete suggestions
+3. Combine multiple keywords with AND/OR operators
+
+**Popular keywords:**
+- Based on novel
+- Superhero
+- Time travel
+- Coming of age
+- Post-apocalyptic
+- Artificial intelligence
+
+### Runtime
+
+Filter by movie or episode length (in minutes):
+
+<Steps>
+  <Step title="Adjust Minimum">
+    Drag the left slider handle to set minimum runtime (0-300 minutes)
+  </Step>
+  <Step title="Adjust Maximum">
+    Drag the right slider handle to set maximum runtime
+  </Step>
+  <Step title="View Results">
+    Results automatically update to show content within your runtime range
+  </Step>
+</Steps>
+
+**Common ranges:**
+- Short films: 0-60 minutes
+- Standard movies: 90-120 minutes
+- Long films: 150+ minutes
+
+### Rating
+
+Filter by average user rating (0-10 scale):
+
+- Use the dual slider to set minimum and maximum ratings
+- Based on TMDB community ratings
+- Step increment: 0.1
+
+**Examples:**
+- 8.0-10.0: Highly acclaimed films
+- 7.0-8.0: Well-received content
+- 5.0-7.0: Mixed reviews
+
+<Info>
+  Ratings are based on TMDB's community voting system and are updated regularly.
+</Info>
+
+### Rating Count
+
+Filter by the number of ratings received:
+
+- Useful for finding popular content vs. hidden gems
+- Higher vote counts generally indicate more mainstream content
+- Lower counts may reveal underrated or niche titles
+
+### TV Series Status (TV Shows Only)
+
+Filter shows by production status:
+
+- **Returning Series**: Currently airing with more seasons planned
+- **Ended**: Series has concluded
+- **Canceled**: Series was canceled before planned completion
+- **In Production**: Currently filming new episodes
+- **Planned**: Announced but not yet in production
+
+### TV Series Type (TV Shows Only)
+
+Filter by the type of TV series:
+
+- **Scripted**: Traditional scripted series
+- **Reality**: Reality TV shows
+- **Documentary**: Documentary series
+- **News**: News programs
+- **Talk Show**: Talk shows and interviews
+- **Miniseries**: Limited series with predetermined episode count
+
+## Sorting Results
+
+Sort your filtered results by:
+
+<Tabs>
+  <Tab title="Popularity">
+    Shows most popular content first (default)
+  </Tab>
+  <Tab title="Release Date">
+    Sort by newest or oldest
+  </Tab>
+  <Tab title="Rating">
+    Sort by highest or lowest rated
+  </Tab>
+  <Tab title="Title">
+    Alphabetical sorting A-Z or Z-A
+  </Tab>
+  <Tab title="Vote Count">
+    Sort by number of user ratings
+  </Tab>
+</Tabs>
+
+**Sort order:**
+- **Descending**: Highest to lowest (default)
+- **Ascending**: Lowest to highest
+
+## Combining Multiple Filters
+
+<Warning>
+  Filters work together to narrow your results. The more filters you apply, the more specific your results become.
+</Warning>
+
+### Example Searches
+
+<AccordionGroup>
+  <Accordion title="Find Sci-Fi Movies on Netflix">
+    1. Go to `/search`
+    2. Set **Genre**: Science Fiction
+    3. Set **Streaming**: Netflix
+    4. Optionally add **Release Date** for recent titles
+    5. Sort by **Rating** to see the best first
+  </Accordion>
+  
+  <Accordion title="Discover Upcoming Action Movies">
+    1. Go to `/search`
+    2. Set **Genre**: Action
+    3. Set **Release Date**: Today to 3 months from now
+    4. Sort by **Release Date** (Ascending) to see what's coming soonest
+  </Accordion>
+  
+  <Accordion title="Browse Classic Horror Films">
+    1. Go to `/search`
+    2. Set **Genre**: Horror
+    3. Set **Release Date**: 1970-1990
+    4. Set **Rating**: 7.0-10.0
+    5. Sort by **Rating** (Descending)
+  </Accordion>
+  
+  <Accordion title="Find Shows with Your Favorite Actor">
+    1. Go to `/tv/search`
+    2. Set **Cast**: Type and select actor name
+    3. Set **Status**: Returning Series (for active shows)
+    4. Sort by **Popularity**
+  </Accordion>
+</AccordionGroup>
+
+## Filter Sidebar
+
+On desktop, the filter sidebar appears on the left side of the search page:
+
+- **Toggle visibility**: Click the filter icon to show/hide
+- **Sticky positioning**: Sidebar scrolls with you for easy access
+- **Mobile view**: Full-screen overlay with close button
+
+<Tip>
+  Applied filters appear as chips in the search results area. Click any chip to quickly remove that filter.
+</Tip>
+
+## Tips for Better Searching
+
+1. **Start broad, then narrow**: Begin with one or two filters and add more to refine
+2. **Use OR operators**: Great for exploring multiple options at once
+3. **Adjust date ranges**: Release date is powerful for finding new or classic content
+4. **Check streaming availability**: Set your location for accurate provider information
+5. **Combine keywords**: Keywords + genre can find very specific content themes
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Browse & Discover" icon="compass" href="/features/browse-discover">
+    Explore curated content sections and categories
+  </Card>
+  <Card title="Watchlist & Favorites" icon="bookmark" href="/features/watchlist-favorites">
+    Save interesting titles you find
+  </Card>
+</CardGroup>

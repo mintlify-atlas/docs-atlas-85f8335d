@@ -1,0 +1,306 @@
+---
+title: 'Environment Variables'
+description: 'Configure your Popcorn Vision application with environment variables'
+icon: 'gear'
+---
+
+## Overview
+
+Popcorn Vision uses environment variables to configure API connections, image CDN endpoints, and analytics. All configuration is managed through a `.env.local` file in your project root.
+
+<Warning>
+  Never commit your `.env.local` file to version control. It contains sensitive API credentials that should remain private.
+</Warning>
+
+## Quick Setup
+
+<Steps>
+  <Step title="Copy the example file">
+    Copy `.env.example` to `.env.local` in your project root:
+    ```bash
+    cp .env.example .env.local
+    ```
+  </Step>
+  
+  <Step title="Add your TMDB credentials">
+    Fill in your TMDB API key and Read Access Token (see [TMDB API Setup](/configuration/tmdb-api) for details)
+  </Step>
+  
+  <Step title="Configure optional features">
+    Add Google Analytics ID if you want to track usage (optional)
+  </Step>
+</Steps>
+
+## Required Variables
+
+These variables are essential for Popcorn Vision to function properly.
+
+### API Configuration
+
+<ParamField path="API_URL" type="string" required>
+  The base URL for the TMDB API v3 endpoint.
+  
+  **Default value:** `https://api.themoviedb.org/3`
+  
+  <Note>
+    You should not need to change this unless TMDB changes their API endpoint structure.
+  </Note>
+</ParamField>
+
+<ParamField path="API_KEY" type="string" required>
+  Your TMDB API key (v3 auth).
+  
+  Used for server-side API requests to TMDB. This is required for authentication, account management, and fetching movie/TV show data.
+  
+  **Where to get it:** [TMDB API Settings](https://www.themoviedb.org/settings/api)
+  
+  <Warning>
+    Keep this secret! Never expose your API key in client-side code or commit it to version control.
+  </Warning>
+</ParamField>
+
+<ParamField path="API_READ" type="string" required>
+  Your TMDB Read Access Token (v4 auth).
+  
+  Some TMDB API features require the v4 Read Access Token instead of the API key. While not currently heavily used in the codebase, it's recommended to provide both for full compatibility.
+  
+  **Where to get it:** [TMDB API Settings](https://www.themoviedb.org/settings/api) (under API Read Access Token)
+</ParamField>
+
+### Image CDN Configuration
+
+TMDB provides a CDN for movie posters, backdrops, and profile images. These variables configure the different image sizes used throughout the application.
+
+<Info>
+  All image URLs use the `NEXT_PUBLIC_` prefix, making them accessible in client-side code for optimal performance.
+</Info>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_45" type="string" required>
+  Ultra-small image size (45px width) for thumbnails.
+  
+  **Default:** `https://image.tmdb.org/t/p/w45`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_92" type="string" required>
+  Extra-small image size (92px width) for small thumbnails.
+  
+  **Default:** `https://image.tmdb.org/t/p/w92`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_154" type="string" required>
+  Small image size (154px width) for compact views.
+  
+  **Default:** `https://image.tmdb.org/t/p/w154`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_185" type="string" required>
+  Small-medium image size (185px width) for profile pictures.
+  
+  **Default:** `https://image.tmdb.org/t/p/w185`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_300" type="string" required>
+  Medium image size (300px width) for cards and listings.
+  
+  **Default:** `https://image.tmdb.org/t/p/w300`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_342" type="string" required>
+  Medium-large image size (342px width) for poster displays.
+  
+  **Default:** `https://image.tmdb.org/t/p/w342`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_500" type="string" required>
+  Large image size (500px width) for featured content.
+  
+  **Default:** `https://image.tmdb.org/t/p/w500`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_632" type="string" required>
+  Extra-large image size (632px width) for detailed views.
+  
+  **Default:** `https://image.tmdb.org/t/p/w632`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_780" type="string" required>
+  HD image size (780px width) for backdrops.
+  
+  **Default:** `https://image.tmdb.org/t/p/w780`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_1280" type="string" required>
+  Full HD image size (1280px width) for hero sections.
+  
+  **Default:** `https://image.tmdb.org/t/p/w1280`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_IMAGE_ORIGINAL" type="string" required>
+  Original uncompressed image size for maximum quality.
+  
+  **Default:** `https://image.tmdb.org/t/p/original`
+  
+  <Warning>
+    Original images can be very large. Use sparingly to avoid performance issues.
+  </Warning>
+</ParamField>
+
+## Optional Variables
+
+These variables enable additional features but are not required for basic functionality.
+
+<ParamField path="GA_MEASUREMENT_ID" type="string">
+  Google Analytics 4 Measurement ID for tracking user behavior and analytics.
+  
+  **Format:** `G-XXXXXXXXXX`
+  
+  **Example:** `G-12345ABCDE`
+  
+  If not provided, Google Analytics tracking will be disabled.
+  
+  **Where to get it:** [Google Analytics](https://analytics.google.com/) - Create a GA4 property and copy the Measurement ID
+</ParamField>
+
+## Example Configuration
+
+Here's a complete example `.env.local` file with all variables configured:
+
+<CodeGroup>
+```bash .env.local
+# API Configuration
+API_URL="https://api.themoviedb.org/3"
+API_KEY="your_tmdb_api_key_here"
+API_READ="your_tmdb_read_access_token_here"
+
+# TMDB Image CDN URLs
+NEXT_PUBLIC_API_IMAGE_45="https://image.tmdb.org/t/p/w45"
+NEXT_PUBLIC_API_IMAGE_92="https://image.tmdb.org/t/p/w92"
+NEXT_PUBLIC_API_IMAGE_154="https://image.tmdb.org/t/p/w154"
+NEXT_PUBLIC_API_IMAGE_185="https://image.tmdb.org/t/p/w185"
+NEXT_PUBLIC_API_IMAGE_300="https://image.tmdb.org/t/p/w300"
+NEXT_PUBLIC_API_IMAGE_342="https://image.tmdb.org/t/p/w342"
+NEXT_PUBLIC_API_IMAGE_500="https://image.tmdb.org/t/p/w500"
+NEXT_PUBLIC_API_IMAGE_632="https://image.tmdb.org/t/p/w632"
+NEXT_PUBLIC_API_IMAGE_780="https://image.tmdb.org/t/p/w780"
+NEXT_PUBLIC_API_IMAGE_1280="https://image.tmdb.org/t/p/w1280"
+NEXT_PUBLIC_API_IMAGE_ORIGINAL="https://image.tmdb.org/t/p/original"
+
+# Analytics (Optional)
+GA_MEASUREMENT_ID="G-XXXXXXXXXX"
+```
+
+```bash Minimal Setup
+# Minimum required variables for Popcorn Vision to work
+API_URL="https://api.themoviedb.org/3"
+API_KEY="your_tmdb_api_key_here"
+API_READ="your_tmdb_read_access_token_here"
+
+# Image URLs (use defaults from .env.example)
+NEXT_PUBLIC_API_IMAGE_45="https://image.tmdb.org/t/p/w45"
+NEXT_PUBLIC_API_IMAGE_92="https://image.tmdb.org/t/p/w92"
+NEXT_PUBLIC_API_IMAGE_154="https://image.tmdb.org/t/p/w154"
+NEXT_PUBLIC_API_IMAGE_185="https://image.tmdb.org/t/p/w185"
+NEXT_PUBLIC_API_IMAGE_300="https://image.tmdb.org/t/p/w300"
+NEXT_PUBLIC_API_IMAGE_342="https://image.tmdb.org/t/p/w342"
+NEXT_PUBLIC_API_IMAGE_500="https://image.tmdb.org/t/p/w500"
+NEXT_PUBLIC_API_IMAGE_632="https://image.tmdb.org/t/p/w632"
+NEXT_PUBLIC_API_IMAGE_780="https://image.tmdb.org/t/p/w780"
+NEXT_PUBLIC_API_IMAGE_1280="https://image.tmdb.org/t/p/w1280"
+NEXT_PUBLIC_API_IMAGE_ORIGINAL="https://image.tmdb.org/t/p/original"
+```
+</CodeGroup>
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Never commit secrets to version control">
+    Always add `.env.local`, `.env.production`, and `.env.development` to your `.gitignore` file:
+    
+    ```bash .gitignore
+    # Environment variables
+    .env*.local
+    .env.production
+    .env.development
+    ```
+    
+    Only commit `.env.example` with placeholder values.
+  </Accordion>
+  
+  <Accordion title="Use different credentials for development and production">
+    Consider creating separate TMDB API keys for development and production environments. This helps you:
+    - Track API usage separately
+    - Revoke compromised keys without affecting production
+    - Apply different rate limits per environment
+  </Accordion>
+  
+  <Accordion title="Rotate API keys periodically">
+    Regularly rotate your TMDB API credentials, especially if:
+    - They may have been exposed in logs or error messages
+    - A team member with access leaves the project
+    - You suspect unauthorized access
+  </Accordion>
+  
+  <Accordion title="Use platform environment variables in production">
+    When deploying to platforms like Vercel or Netlify, use their built-in environment variable management instead of committing `.env` files. See [Deployment Configuration](/configuration/deployment) for details.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Images not loading">
+    **Problem:** Movie posters and backdrops are not displaying.
+    
+    **Solutions:**
+    1. Verify all `NEXT_PUBLIC_API_IMAGE_*` variables are set correctly
+    2. Check browser console for CORS errors
+    3. Ensure the URLs match TMDB's current CDN structure
+    4. Clear your browser cache and restart the dev server
+  </Accordion>
+  
+  <Accordion title="API authentication errors">
+    **Problem:** Getting 401 Unauthorized errors from TMDB API.
+    
+    **Solutions:**
+    1. Double-check your `API_KEY` is correct (copy it fresh from TMDB)
+    2. Ensure there are no extra spaces or quotes in your `.env.local` file
+    3. Verify your TMDB API key is active in your account settings
+    4. Restart your development server after changing environment variables
+  </Accordion>
+  
+  <Accordion title="Environment variables not updating">
+    **Problem:** Changes to `.env.local` are not taking effect.
+    
+    **Solution:**
+    Next.js loads environment variables at build time. After changing any variable:
+    
+    ```bash
+    # Stop the dev server (Ctrl+C) and restart
+    npm run dev
+    # or
+    pnpm dev
+    ```
+  </Accordion>
+  
+  <Accordion title="Variables undefined in client-side code">
+    **Problem:** Environment variables are `undefined` in React components.
+    
+    **Solution:**
+    Only variables prefixed with `NEXT_PUBLIC_` are accessible in client-side code. Server-only variables (like `API_KEY`) are intentionally not available in the browser for security.
+    
+    If you need a variable in both places, you must create two versions:
+    - `API_KEY` for server-side
+    - `NEXT_PUBLIC_API_KEY` for client-side (only if absolutely necessary)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="TMDB API Setup" icon="key" href="/configuration/tmdb-api">
+    Get your TMDB API credentials and configure authentication
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/configuration/deployment">
+    Deploy your Popcorn Vision instance to production
+  </Card>
+</CardGroup>

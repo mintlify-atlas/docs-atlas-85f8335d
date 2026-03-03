@@ -1,0 +1,419 @@
+---
+title: 'Contributing Guidelines'
+description: 'How to contribute to Popcorn Vision - fork, branch, commit, and PR process'
+icon: 'code-pull-request'
+---
+
+## Welcome Contributors
+
+Thank you for your interest in contributing to Popcorn Vision! We welcome contributions from developers of all skill levels. This guide will help you understand our contribution process and community standards.
+
+## How to Contribute
+
+<Steps>
+  <Step title="Fork the Repository">
+    Start by creating your own copy of the repository:
+
+    1. Navigate to [github.com/fachryafrz/popcorn-vision](https://github.com/fachryafrz/popcorn-vision)
+    2. Click the **Fork** button in the top-right corner
+    3. This creates a copy under your GitHub account
+  </Step>
+
+  <Step title="Clone Your Fork">
+    Clone the forked repository to your local machine:
+
+    ```bash
+    git clone https://github.com/{your-username}/popcorn-vision.git
+    cd popcorn-vision
+    ```
+  </Step>
+
+  <Step title="Create a Feature Branch">
+    Create a new branch for your changes:
+
+    ```bash
+    # For a new feature
+    git checkout -b feature/your-feature-name
+
+    # For a bug fix
+    git checkout -b fix/issue-description
+
+    # For documentation
+    git checkout -b docs/what-you-are-documenting
+    ```
+
+    <Info>
+    Use descriptive branch names that clearly indicate the purpose of your changes.
+    </Info>
+  </Step>
+
+  <Step title="Make Your Changes">
+    1. Set up your development environment (see [Development Guide](/contributing/development-guide))
+    2. Make your changes following the [Code Style](/contributing/code-style) guidelines
+    3. Test your changes thoroughly
+    4. Run `pnpm lint` to check for code quality issues
+  </Step>
+
+  <Step title="Commit Your Changes">
+    Commit your changes with clear, descriptive commit messages:
+
+    ```bash
+    git add .
+    git commit -m "Add: Implement movie filtering by release year"
+    ```
+
+    See [Commit Message Conventions](#commit-message-conventions) below for guidelines.
+  </Step>
+
+  <Step title="Push to Your Fork">
+    Push your changes to your GitHub fork:
+
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+  </Step>
+
+  <Step title="Create a Pull Request">
+    1. Go to your fork on GitHub
+    2. Click **Compare & pull request**
+    3. Provide a clear title and description of your changes
+    4. Reference any related issues (e.g., "Fixes #123")
+    5. Submit the pull request
+  </Step>
+</Steps>
+
+## Commit Message Conventions
+
+Write clear, descriptive commit messages that help others understand your changes:
+
+### Format
+
+```
+<type>: <subject>
+
+<body> (optional)
+
+<footer> (optional)
+```
+
+### Types
+
+Use one of these prefixes to categorize your commit:
+
+- **Add:** - New feature or functionality
+- **Update:** - Enhancement to existing feature
+- **Fix:** - Bug fix
+- **Refactor:** - Code restructuring without changing behavior
+- **Style:** - Formatting, missing semicolons, etc.
+- **Docs:** - Documentation changes
+- **Test:** - Adding or updating tests
+- **Chore:** - Maintenance tasks, dependency updates
+
+### Examples
+
+<CodeGroup>
+```bash Feature
+Add: Implement advanced search filters for movies
+
+- Add genre filter dropdown
+- Add release year range selector
+- Add rating filter
+- Update search API to support new filters
+```
+
+```bash Bug Fix
+Fix: Resolve infinite scroll issue on mobile devices
+
+The intersection observer was triggering multiple times
+on mobile Safari. Added debouncing to prevent duplicate
+API calls.
+
+Fixes #456
+```
+
+```bash Documentation
+Docs: Update README with new environment variables
+```
+
+```bash Refactor
+Refactor: Simplify movie card component logic
+
+- Extract image loading logic to custom hook
+- Remove duplicate code
+- Improve component readability
+```
+</CodeGroup>
+
+### Best Practices
+
+- **Use imperative mood** - "Add feature" not "Added feature"
+- **Keep subject line under 72 characters**
+- **Capitalize the subject line**
+- **Don't end subject with a period**
+- **Separate subject from body with blank line**
+- **Explain what and why, not how** (in the body)
+
+## Pull Request Process
+
+### Before Submitting
+
+Ensure your PR meets these requirements:
+
+- [ ] Code follows the [Code Style](/contributing/code-style) guidelines
+- [ ] All ESLint checks pass (`pnpm lint`)
+- [ ] Changes are tested locally
+- [ ] Commit messages follow conventions
+- [ ] Branch is up to date with `main`
+
+### PR Description Template
+
+Provide a comprehensive description of your changes:
+
+```markdown
+## Description
+Brief description of what this PR does
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Enhancement
+- [ ] Documentation update
+- [ ] Refactoring
+
+## Changes Made
+- List of specific changes
+- What was added/modified/removed
+
+## Related Issues
+Fixes #123, Relates to #456
+
+## Testing
+How did you test these changes?
+
+## Screenshots (if applicable)
+Add screenshots for UI changes
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Tested locally
+- [ ] ESLint passes
+- [ ] Documentation updated (if needed)
+```
+
+### Review Process
+
+1. **Automated Checks** - ESLint and build checks run automatically
+2. **Code Review** - Maintainers will review your code
+3. **Feedback** - Address any requested changes
+4. **Approval** - Once approved, your PR will be merged
+
+<Info>
+Be patient during the review process. Maintainers may take a few days to review PRs.
+</Info>
+
+## Code of Conduct
+
+All contributors must follow our Code of Conduct to maintain a welcoming and inclusive community.
+
+### Usage and Forking Rules
+
+- ✅ You are **allowed** to fork and modify this project
+- ✅ You are **allowed** to use this project for learning and personal projects
+- ❌ You are **not allowed** to claim this project as your own
+- ✅ If you use this project, please **provide proper attribution**
+- ✅ Contributions via pull requests are welcome
+
+### Our Pledge
+
+We pledge to make participation in our community a **harassment-free experience** for everyone, regardless of:
+
+- Age
+- Body size
+- Disability (visible or invisible)
+- Ethnicity
+- Gender identity and expression
+- Level of experience
+- Education
+- Socio-economic status
+- Nationality
+- Personal appearance
+- Race
+- Religion
+- Sexual identity and orientation
+
+### Our Standards
+
+**Positive behavior includes:**
+
+- Demonstrating empathy and kindness
+- Being respectful of differing opinions and experiences
+- Giving and accepting constructive feedback gracefully
+- Accepting responsibility and apologizing for mistakes
+- Focusing on what's best for the community
+
+**Unacceptable behavior includes:**
+
+- Sexualized language or imagery
+- Trolling, insulting, or derogatory comments
+- Personal or political attacks
+- Public or private harassment
+- Publishing others' private information without permission
+- Other conduct inappropriate in a professional setting
+
+### Enforcement
+
+Instances of unacceptable behavior may be reported to [@fachryafrz](https://github.com/fachryafrz).
+
+All complaints will be reviewed and investigated promptly and fairly.
+
+### Enforcement Actions
+
+1. **Correction** - Private warning for inappropriate behavior
+2. **Warning** - Warning with consequences for continued behavior
+3. **Temporary Ban** - Temporary ban from community interaction
+4. **Permanent Ban** - Permanent ban for serious or repeated violations
+
+## Issue Reporting Guidelines
+
+### Before Creating an Issue
+
+1. **Search existing issues** - Your issue may already be reported
+2. **Check documentation** - The answer might be in the docs
+3. **Update dependencies** - Ensure you're using the latest version
+
+### Creating a Good Issue
+
+Provide detailed information to help us understand and reproduce the issue:
+
+#### Bug Report Template
+
+```markdown
+**Describe the bug**
+A clear description of what the bug is.
+
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '...'
+3. Scroll down to '...'
+4. See error
+
+**Expected behavior**
+What you expected to happen.
+
+**Screenshots**
+If applicable, add screenshots.
+
+**Environment:**
+- OS: [e.g., macOS, Windows, Linux]
+- Browser: [e.g., Chrome 120, Safari 17]
+- Node version: [e.g., 18.17.0]
+- Package manager: [e.g., pnpm 9.15.5]
+
+**Additional context**
+Any other relevant information.
+```
+
+#### Feature Request Template
+
+```markdown
+**Is your feature request related to a problem?**
+Describe the problem you're trying to solve.
+
+**Describe the solution you'd like**
+What you want to happen.
+
+**Describe alternatives you've considered**
+Other solutions or features you've considered.
+
+**Additional context**
+Mockups, examples, or other context.
+```
+
+### Issue Labels
+
+Common labels used in the project:
+
+- `bug` - Something isn't working
+- `enhancement` - New feature or request
+- `documentation` - Documentation improvements
+- `good first issue` - Good for newcomers
+- `help wanted` - Extra attention needed
+- `question` - Further information requested
+
+## Development Best Practices
+
+### Keep PRs Focused
+
+- **One feature/fix per PR** - Don't combine unrelated changes
+- **Small, incremental changes** - Easier to review and merge
+- **Split large features** - Break into multiple PRs if needed
+
+### Stay Updated
+
+Keep your fork synchronized with the main repository:
+
+```bash
+# Add upstream remote (one time only)
+git remote add upstream https://github.com/fachryafrz/popcorn-vision.git
+
+# Fetch latest changes
+git fetch upstream
+
+# Update your main branch
+git checkout main
+git merge upstream/main
+
+# Update your feature branch
+git checkout feature/your-feature
+git rebase main
+```
+
+### Respond to Feedback
+
+- Be open to suggestions and constructive criticism
+- Respond to review comments promptly
+- Make requested changes in new commits (don't force push)
+- Thank reviewers for their time and feedback
+
+## License
+
+By contributing to Popcorn Vision, you agree that your contributions will be licensed under the **MIT License**.
+
+### MIT License Summary
+
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ⚠️ Liability and warranty limitations apply
+
+See the [LICENSE](https://github.com/fachryafrz/popcorn-vision/blob/main/LICENSE) file for full details.
+
+## Getting Help
+
+If you need help with your contribution:
+
+1. **Check the documentation** - Start with the [Development Guide](/contributing/development-guide)
+2. **Search existing issues** - Someone may have asked the same question
+3. **Open a discussion** - Ask questions in GitHub Discussions
+4. **Contact maintainers** - Reach out to [@fachryafrz](https://github.com/fachryafrz)
+
+## Recognition
+
+All contributors are valued and appreciated! Contributors will be:
+
+- Listed in the project's contributor list
+- Credited in release notes for significant contributions
+- Mentioned in project documentation where applicable
+
+## Next Steps
+
+Ready to contribute?
+
+1. Read the [Development Guide](/contributing/development-guide) to set up your environment
+2. Review the [Code Style](/contributing/code-style) guidelines
+3. Check [open issues](https://github.com/fachryafrz/popcorn-vision/issues) for tasks
+4. Look for `good first issue` labels if you're new
+
+Thank you for contributing to Popcorn Vision!

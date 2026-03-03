@@ -1,0 +1,456 @@
+---
+title: Film Components
+description: Components for displaying movies and TV shows throughout the app
+---
+
+## Overview
+
+Film components are the core building blocks for displaying movie and TV show content in Popcorn Vision. These components handle everything from hero sliders to card grids, managing both visual presentation and user interactions.
+
+## HomeSlider
+
+The main hero slider component displayed on the homepage, featuring full-screen film showcases with autoplay and navigation.
+
+### Props
+
+<ParamField path="films" type="array" required>
+  Array of film objects to display in the slider
+</ParamField>
+
+<ParamField path="genres" type="array" required>
+  Genre data for displaying film categories
+</ParamField>
+
+<ParamField path="filmData" type="array" required>
+  Detailed film data including images (posters, backdrops, logos)
+</ParamField>
+
+### Usage Example
+
+```jsx
+import HomeSlider from "@/components/Film/HomeSlider";
+
+export default function HomePage({ films, genres, filmData }) {
+  return (
+    <HomeSlider 
+      films={films} 
+      genres={genres} 
+      filmData={filmData} 
+    />
+  );
+}
+```
+
+### Features
+
+- **Swiper Integration**: Uses Swiper.js with fade effects and keyboard navigation
+- **Responsive Images**: Serves different images for mobile (poster) and desktop (backdrop)
+- **Thumbnail Navigation**: Desktop view includes thumbnail previews for quick navigation
+- **Accessibility**: Includes screen reader-only content with film details
+
+<CodeGroup>
+```jsx HomeSlider Structure
+<Swiper
+  effect="fade"
+  keyboard={true}
+  modules={[Pagination, Autoplay, EffectFade, Keyboard, FreeMode, Thumbs]}
+>
+  {films.map((film) => (
+    <SwiperSlide key={film.id}>
+      <HomeFilm film={film} genres={genres} />
+    </SwiperSlide>
+  ))}
+</Swiper>
+```
+
+```jsx Responsive Images
+<picture>
+  <source
+    media="(min-width: 640px)"
+    srcSet={`https://image.tmdb.org/t/p/w1280${filmBackdrop}`}
+  />
+  <img
+    src={`https://image.tmdb.org/t/p/w500${filmPoster}`}
+    alt=""
+    width={500}
+    height={750}
+  />
+</picture>
+```
+</CodeGroup>
+
+---
+
+## FilmSlider
+
+Horizontal scrolling carousel for displaying collections of films with navigation controls.
+
+### Props
+
+<ParamField path="films" type="object" required>
+  Object containing `results` array of films
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Section title displayed above the slider
+</ParamField>
+
+<ParamField path="sort" type="string" default="DESC">
+  Sort order for films: `"DESC"` or `"ASC"`
+</ParamField>
+
+<ParamField path="viewAll" type="string" default="">
+  URL for "View all" link. If empty, link is not shown
+</ParamField>
+
+### Usage Example
+
+```jsx
+<FilmSlider
+  films={trendingFilms}
+  title="Trending Now"
+  sort="DESC"
+  viewAll="/search?sort_by=popularity.desc"
+/>
+```
+
+### Implementation Details
+
+<Accordion title="Navigation Controls">
+  The component automatically generates unique navigation buttons using slugified titles:
+  
+  ```jsx
+  <button className={`prev-${slug(title)}`}>
+    <IonIcon icon={chevronBack} />
+  </button>
+  <button className={`next-${slug(title)}`}>
+    <IonIcon icon={chevronForward} />
+  </button>
+  ```
+</Accordion>
+
+<Accordion title="Responsive Breakpoints">
+  Slides per group adjust based on screen size:
+  
+  - 640px: 3 slides
+  - 768px: 4 slides
+  - 1024px: 5 slides
+  - 1280px: 6 slides
+  - 1536px: 7 slides
+</Accordion>
+
+---
+
+## FilmCard
+
+Individual film card component with poster image, rating badge, and hover effects.
+
+### Props
+
+<ParamField path="film" type="object" required>
+  Film object with properties:
+  - `id`: Film ID
+  - `title` or `name`: Film title
+  - `poster_path`: Poster image path
+  - `vote_average`: Rating (0-10)
+  - `release_date` or `first_air_date`: Release date
+</ParamField>
+
+<ParamField path="isTvPage" type="boolean" required>
+  Whether the card is for a TV show
+</ParamField>
+
+### Features
+
+<CardGroup cols={2}>
+  <Card title="Hover Preview" icon="eye">
+    Integrates with `useHoverCard` store to show detailed preview on hover
+  </Card>
+  
+  <Card title="Rating Badge" icon="star">
+    Color-coded rating indicator:
+    - Red: 0-3
+    - Yellow: 3-7
+    - Green: 7-10
+  </Card>
+  
+  <Card title="Lazy Loading" icon="image">
+    Images load lazily with `loading="lazy"` attribute
+  </Card>
+  
+  <Card title="Accessibility" icon="universal-access">
+    Screen reader-only heading with title and year
+  </Card>
+</CardGroup>
+
+### Usage Example
+
+```jsx Film/Card.jsx (excerpt)
+import FilmCard from "@/components/Film/Card";
+import { useHoverCard } from "@/zustand/hoverCard";
+
+export default function FilmCard({ film, isTvPage }) {
+  const { handleMouseOver } = useHoverCard();
+
+  return (
+    <Link
+      href={`/${!isTvPage ? 'movies' : 'tv'}/${film.id}-${slug(film.title ?? film.name)}`}
+      onMouseEnter={(e) => {
+        const position = e.target.getBoundingClientRect();
+        handleMouseOver(film, position);
+      }}
+    >
+      <h3 className="sr-only">
+        {film.title ?? film.name} ({dayjs(film.release_date ?? film.first_air_date).format("YYYY")})
+      </h3>
+      
+      <ImagePovi imgPath={film.poster_path}>
+        <img
+          src={`https://image.tmdb.org/t/p/w300${film.poster_path}`}
+          loading="lazy"
+          alt=""
+        />
+        
+        {/* Rating Badge */}
+        {film.vote_average > 0 && (
+          <div className="radial-progress">
+            <span>{formatRating(film.vote_average)}</span>
+          </div>
+        )}
+      </ImagePovi>
+    </Link>
+  );
+}
+```
+
+---
+
+## FilmGrid
+
+Responsive grid layout for displaying multiple films with infinite scroll loading.
+
+### Props
+
+<ParamField path="films" type="array" required>
+  Array of film objects to display
+</ParamField>
+
+<ParamField path="fetchMoreFilms" type="function" required>
+  Callback function to fetch additional films when scrolling
+</ParamField>
+
+<ParamField path="currentSearchPage" type="number" required>
+  Current page number
+</ParamField>
+
+<ParamField path="totalSearchPages" type="number" required>
+  Total number of pages available
+</ParamField>
+
+<ParamField path="loading" type="boolean" required>
+  Loading state indicator
+</ParamField>
+
+<ParamField path="initialLoading" type="boolean" default={false}>
+  Whether this is the initial page load
+</ParamField>
+
+### Infinite Scroll Implementation
+
+```jsx
+const loadMoreRef = useRef(null);
+
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) {
+        fetchMoreFilms();
+      }
+    },
+    { threshold: 0.5 }
+  );
+
+  if (loadMoreRef.current) {
+    observer.observe(loadMoreRef.current);
+  }
+
+  return () => {
+    if (loadMoreRef.current) {
+      observer.unobserve(loadMoreRef.current);
+    }
+  };
+}, [fetchMoreFilms]);
+```
+
+### Grid Breakpoints
+
+The grid uses container queries for responsive layouts:
+
+- **Base**: 3 columns
+- **@2xl**: 4 columns
+- **@5xl**: 5 columns
+- **@6xl**: 6 columns
+- **@7xl**: 7 columns
+
+---
+
+## FilmSummary
+
+Displays film metadata including title, rating, runtime, genres, and overview.
+
+### Props
+
+<ParamField path="film" type="object" required>
+  Film object with detailed information
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes
+</ParamField>
+
+<ParamField path="btnClass" type="string">
+  CSS classes for buttons
+</ParamField>
+
+<ParamField path="showButton" type="boolean" default={true}>
+  Whether to show the "Details" button
+</ParamField>
+
+<ParamField path="clampDescription" type="boolean" default={true}>
+  Whether to clamp the overview text (2-3 lines)
+</ParamField>
+
+### Features
+
+<Tabs>
+  <Tab title="Rating Display">
+    ```jsx
+    <Link href={`/search?rating=${formatRating(film.vote_average)}..10`}>
+      <IonIcon icon={star} />
+      <span>{formatRating(film.vote_average)}</span>
+    </Link>
+    ```
+    
+    Rating badge links to search results with similar or higher ratings.
+  </Tab>
+  
+  <Tab title="Runtime (Movies)">
+    ```jsx
+    <Link href={`/search?with_runtime=${film.runtime}..300`}>
+      {formatRuntime(film.runtime)}
+    </Link>
+    ```
+    
+    Displays formatted runtime (e.g., "2h 30m") with link to similar-length films.
+  </Tab>
+  
+  <Tab title="Seasons (TV Shows)">
+    ```jsx
+    <span>
+      {pluralize("Season", season, true)}
+    </span>
+    ```
+    
+    Shows number of seasons using pluralize helper.
+  </Tab>
+  
+  <Tab title="Genres">
+    ```jsx
+    {film.genres?.slice(0, 1).map((genre) => (
+      <Link href={`/search?with_genres=${genre.id}`}>
+        {genre.name}
+      </Link>
+    ))}
+    ```
+    
+    Displays first genre as a clickable badge.
+  </Tab>
+</Tabs>
+
+---
+
+## Recommendation
+
+Displays recommended and similar films with infinite scroll pagination.
+
+### Props
+
+<ParamField path="id" type="number" required>
+  Film ID to fetch recommendations for
+</ParamField>
+
+<ParamField path="similar" type="object" required>
+  Similar films data from API
+</ParamField>
+
+<ParamField path="recommendations" type="object" required>
+  Recommended films data from API
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Section title (e.g., "You May Also Like")
+</ParamField>
+
+### Implementation
+
+The component first shows recommendations, then switches to similar films when recommendations are exhausted:
+
+```jsx
+const fetchMoreFilms = async () => {
+  let endpoint = !isFinished ? 'recommendations' : 'similar';
+  
+  const response = await axios.get(
+    `/api/${!isTvPage ? 'movie' : 'tv'}/${id}/${endpoint}`,
+    { params: { page: nextPage } }
+  );
+  
+  setFilmsData((prev) => [...prev, ...response.results]);
+};
+```
+
+---
+
+## Related Components
+
+<CardGroup cols={2}>
+  <Card title="TitleLogo" icon="font" href="#titlelogo">
+    Displays film logo or fallback title text
+  </Card>
+  
+  <Card title="ImagePovi" icon="image">
+    Image wrapper with fallback and loading states
+  </Card>
+  
+  <Card title="User Actions" href="/components/user">
+    Watchlist, favorite, and rating buttons
+  </Card>
+  
+  <Card title="Search Integration" href="/components/search">
+    Filter and search components
+  </Card>
+</CardGroup>
+
+---
+
+## Key Files
+
+<CodeGroup>
+```text Component Locations
+src/components/Film/
+├── HomeSlider.jsx      # Hero slider component
+├── Slider.jsx          # Horizontal film carousel
+├── Card.jsx            # Individual film card
+├── Grid.jsx            # Responsive grid layout
+├── Summary.jsx         # Film metadata display
+├── Recommendation.jsx  # Related films section
+└── TitleLogo.jsx       # Film logo component
+```
+
+```text Helper Utilities
+src/lib/
+├── formatRating.js     # Format vote_average
+├── formatRuntime.js    # Convert minutes to hours
+├── sortFilms.js        # Sort film arrays
+└── constants.js        # POPCORN logo constant
+```
+</CodeGroup>

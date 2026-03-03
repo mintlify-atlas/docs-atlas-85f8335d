@@ -1,0 +1,400 @@
+---
+title: 'TMDB Integration'
+description: 'How Popcorn Vision integrates with The Movie Database API'
+---
+
+Popcorn Vision uses The Movie Database (TMDB) API as its primary data source for movies, TV shows, and related content. This page explains the integration architecture, proxy implementation, rate limiting, and best practices.
+
+## Architecture Overview
+
+The application implements a proxy layer between the frontend and TMDB API to:
+
+- Secure API keys (never exposed to the client)
+- Implement rate limiting to comply with TMDB's limits
+- Handle authentication and session management
+- Provide consistent error handling
+- Enable server-side caching (future enhancement)
+
+### Request Flow
+
+```
+Client → Next.js API Route → Rate Limiter → TMDB API → Response
+```
+
+1. Client makes request to `/api/*`
+2. Next.js API route validates and processes the request
+3. Rate limiter checks if request is allowed
+4. Request is proxied to TMDB API with server-side credentials
+5. Response is returned to client
+
+---
+
+## Proxy Endpoint
+
+The catch-all proxy endpoint handles requests that don't match specific routes.
+
+### Implementation
+
+<CodeGroup>
+```javascript /src/app/api/[[...segments]]/route.js
+export async function GET(req, ctx) {
+  const { segments } = ctx.params;
+  const { searchParams } = new URL(req.url);
+
+  // Rate limiting
+  const remainingToken = await limiter.removeTokens(1);
+  if (remainingToken < 0) return tokenExpired(req);
+
+  // Build TMDB API URL
+  const urlPath = segments.join("/");
+
+  // Add API key and query parameters
+  const params = {
+    api_key: process.env.API_KEY,
+    ...Object.fromEntries(searchParams),
+  };
+
+  // Add session ID for account states
+  if (lastSegment === "account_states") {
+    const cookiesStore = cookies();
+    if (cookiesStore.has(TMDB_SESSION_ID)) {
+      params.session_id = cookiesStore.get(TMDB_SESSION_ID).value;
+    }
+  }
+
+  // Make request to TMDB
+  const { data, status } = await axios.get(
+    `${process.env.API_URL}/${urlPath}`,
+    { params }
+  );
+
+  return NextResponse.json(data, { status });
+}
+```
+</CodeGroup>
+
+### Usage
+
+Any TMDB API endpoint can be accessed through the proxy:
+
+```javascript
+// Get movie details
+fetch('/api/movie/550?language=en-US')
+
+// Get trending movies
+fetch('/api/trending/movie/week')
+
+// Get movie credits
+fetch('/api/movie/550/credits')
+
+// Get account states (requires authentication)
+fetch('/api/movie/550/account_states')
+```
+
+### Supported Methods
+
+- `GET` - Retrieve data from TMDB
+- `POST` - Create/update data (limited to rating endpoints)
+- `DELETE` - Delete data (limited to rating endpoints)
+
+---
+
+## Rate Limiting
+
+Popcorn Vision implements token bucket rate limiting to comply with TMDB's API limits.
+
+### Configuration
+
+<CodeGroup>
+```javascript /src/app/api/config/limiter.js
+import { RateLimiter } from "limiter";
+
+export const limiter = new RateLimiter({
+  tokensPerInterval: 40,
+  interval: 10000,
+  fireImmediately: true,
+});
+
+export const tokenExpired = async (request) => {
+  return NextResponse.json("Rate Limit Exceeded", {
+    status: 429,
+    statusText: "Too Many Requests",
+  });
+};
+```
+</CodeGroup>
+
+### Rate Limits
+
+- **40 requests per 10 seconds** (TMDB recommendation)
+- Applies to all API endpoints
+- Shared across all users (server-side limiting)
+
+### How It Works
+
+1. Each API route calls `limiter.removeTokens(1)` before making a request
+2. If tokens are available, the request proceeds
+3. If no tokens remain, a 429 error is returned
+4. Tokens replenish at a rate of 40 per 10 seconds
+
+### Rate Limit Response
+
+```json
+// HTTP 429 Too Many Requests
+"Rate Limit Exceeded"
+```
+
+### Best Practices
+
+- **Cache responses** on the client when possible
+- **Batch requests** where applicable
+- **Debounce search queries** to avoid rapid successive requests
+- **Use pagination wisely** - don't load all pages at once
+- **Implement loading states** to prevent duplicate requests
+
+---
+
+## Environment Variables
+
+The following environment variables are required:
+
+<ParamField path="API_KEY" type="string" required>
+  Your TMDB API key (v3 auth)
+</ParamField>
+
+<ParamField path="API_URL" type="string" required>
+  TMDB API base URL: `https://api.themoviedb.org/3`
+</ParamField>
+
+### Setup
+
+```bash .env.local
+API_KEY=your_tmdb_api_key_here
+API_URL=https://api.themoviedb.org/3
+```
+
+<Note>
+  Never commit `.env.local` to version control. Keep your API key secure.
+</Note>
+
+---
+
+## Session Management
+
+User sessions are managed using HTTP-only cookies for security.
+
+### Cookies
+
+<ResponseField name="TMDB_SESSION_ID" type="string">
+  The authenticated user's session ID
+  - **Max Age**: 1 year
+  - **Set by**: `/api/authentication/login`
+  - **Used by**: All authenticated endpoints
+</ResponseField>
+
+<ResponseField name="TMDB_AUTH_TOKEN" type="string">
+  Temporary authentication token
+  - **Max Age**: 1 hour
+  - **Set by**: `/api/authentication/token/new`
+  - **Used by**: Authentication flow
+</ResponseField>
+
+### Automatic Session Injection
+
+For endpoints that require authentication, the session ID is automatically injected:
+
+```javascript
+// Account states endpoint
+if (lastSegment === "account_states") {
+  const cookiesStore = cookies();
+  if (cookiesStore.has(TMDB_SESSION_ID)) {
+    params.session_id = cookiesStore.get(TMDB_SESSION_ID).value;
+  }
+}
+```
+
+This allows authenticated requests without exposing session IDs to the client.
+
+---
+
+## Error Handling
+
+All API routes implement consistent error handling:
+
+```javascript
+try {
+  const { data, status } = await axios.get(tmdbUrl, { params });
+  return NextResponse.json(data, { status });
+} catch (error) {
+  return NextResponse.json(
+    error.response?.data || { message: "Error" },
+    { status: error.response?.status || 500 }
+  );
+}
+```
+
+### Common Error Responses
+
+<ResponseField name="401 Unauthorized">
+  Authentication required or invalid session
+</ResponseField>
+
+<ResponseField name="404 Not Found">
+  Resource does not exist
+</ResponseField>
+
+<ResponseField name="429 Too Many Requests">
+  Rate limit exceeded
+</ResponseField>
+
+<ResponseField name="500 Internal Server Error">
+  Server or TMDB API error
+</ResponseField>
+
+---
+
+## Caching Strategy
+
+While not currently implemented, here are recommended caching strategies:
+
+### Client-Side Caching
+
+```javascript
+// Using React Query / TanStack Query
+const { data } = useQuery({
+  queryKey: ['movie', movieId],
+  queryFn: () => fetch(`/api/movie/${movieId}`).then(r => r.json()),
+  staleTime: 1000 * 60 * 5, // 5 minutes
+  cacheTime: 1000 * 60 * 30, // 30 minutes
+});
+```
+
+### Server-Side Caching
+
+Could be implemented using:
+
+- **Redis** for distributed caching
+- **Next.js Cache API** for simple caching
+- **HTTP Cache Headers** for browser caching
+
+```javascript
+// Example with Next.js unstable_cache
+import { unstable_cache } from 'next/cache';
+
+const getMovie = unstable_cache(
+  async (id) => {
+    const { data } = await axios.get(`${API_URL}/movie/${id}`, {
+      params: { api_key: API_KEY }
+    });
+    return data;
+  },
+  ['movie'],
+  { revalidate: 3600 } // 1 hour
+);
+```
+
+### Cache Invalidation
+
+Consider cache invalidation for:
+
+- User-specific data (favorites, watchlist, ratings)
+- Trending/popular content (update hourly/daily)
+- Static data (genres, languages) can be cached longer
+
+---
+
+## Best Practices
+
+### Security
+
+- Never expose API keys to the client
+- Use HTTP-only cookies for sessions
+- Validate and sanitize all user inputs
+- Implement CORS properly
+
+### Performance
+
+- Implement request deduplication
+- Use pagination for large datasets
+- Cache responses where appropriate
+- Optimize images with TMDB's size parameters
+
+### Reliability
+
+- Handle rate limits gracefully
+- Implement retry logic for transient errors
+- Provide meaningful error messages
+- Log errors for monitoring
+
+### TMDB API Guidelines
+
+- Respect rate limits (40 req/10s)
+- Always include attribution to TMDB
+- Keep API keys secure
+- Review [TMDB API Terms of Use](https://www.themoviedb.org/terms-of-use)
+
+---
+
+## Example Integration
+
+Here's a complete example of fetching and displaying movie details:
+
+```javascript
+// components/MovieDetails.jsx
+import { useEffect, useState } from 'react';
+
+export default function MovieDetails({ movieId }) {
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchMovie() {
+      try {
+        const response = await fetch(`/api/movie/${movieId}?language=en-US`);
+        
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        }
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch movie');
+        }
+        
+        const data = await response.json();
+        setMovie(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMovie();
+  }, [movieId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!movie) return null;
+
+  return (
+    <div>
+      <h1>{movie.title}</h1>
+      <p>{movie.overview}</p>
+      <img 
+        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+        alt={movie.title}
+      />
+    </div>
+  );
+}
+```
+
+---
+
+## Additional Resources
+
+- [TMDB API Documentation](https://developers.themoviedb.org/3)
+- [TMDB API Terms of Use](https://www.themoviedb.org/terms-of-use)
+- [Next.js API Routes](https://nextjs.org/docs/api-routes/introduction)
+- [Rate Limiter Package](https://www.npmjs.com/package/limiter)

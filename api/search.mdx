@@ -1,0 +1,389 @@
+---
+title: 'Search'
+description: 'Search and filter movies, TV shows, and people'
+---
+
+The search API provides endpoints for searching and filtering content. All search endpoints support pagination and are rate-limited to 40 requests per 10 seconds.
+
+## Search Query
+
+Search for movies, TV shows, and people using a text query.
+
+<CodeGroup>
+```bash GET /api/search/query
+curl -X GET "https://your-domain.com/api/search/query?query=fight+club&page=1"
+```
+</CodeGroup>
+
+### Query Parameters
+
+<ParamField query="query" type="string" required>
+  The search query string (URL encoded)
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination (1-1000)
+</ParamField>
+
+### Response
+
+<ResponseField name="page" type="integer" required>
+  Current page number
+</ResponseField>
+
+<ResponseField name="results" type="array" required>
+  Array of search results (movies, TV shows, and people)
+</ResponseField>
+
+<ResponseField name="total_pages" type="integer" required>
+  Total number of pages available
+</ResponseField>
+
+<ResponseField name="total_results" type="integer" required>
+  Total number of results found
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+      "id": 550,
+      "title": "Fight Club",
+      "original_language": "en",
+      "original_title": "Fight Club",
+      "overview": "A ticking-time-bomb insomniac...",
+      "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      "media_type": "movie",
+      "genre_ids": [18],
+      "popularity": 61.416,
+      "release_date": "1999-10-15",
+      "video": false,
+      "vote_average": 8.433,
+      "vote_count": 26280
+    },
+    {
+      "adult": false,
+      "id": 287,
+      "name": "Brad Pitt",
+      "original_name": "Brad Pitt",
+      "media_type": "person",
+      "popularity": 45.343,
+      "gender": 2,
+      "known_for_department": "Acting",
+      "profile_path": "/kU3B75TyRiCgE270EyZnHjfivoq.jpg"
+    }
+  ],
+  "total_pages": 3,
+  "total_results": 52
+}
+```
+
+### Result Types
+
+The results array can contain three types of items:
+
+- **Movies**: Include `title`, `release_date`, `media_type: "movie"`
+- **TV Shows**: Include `name`, `first_air_date`, `media_type: "tv"`
+- **People**: Include `name`, `known_for_department`, `media_type: "person"`
+
+---
+
+## Filter Search
+
+Search for movies or TV shows using advanced filters.
+
+<CodeGroup>
+```bash GET /api/search/filter
+curl -X GET "https://your-domain.com/api/search/filter?media_type=movie&with_genres=28,12&release_date=2020-01-01..2024-12-31&sort_by=popularity.desc&page=1"
+```
+</CodeGroup>
+
+### Query Parameters
+
+<ParamField query="media_type" type="string" required>
+  Type of media to search. Options:
+  - `movie` - Movies
+  - `tv` - TV shows
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination (1-500)
+</ParamField>
+
+<ParamField query="sort_by" type="string" default="popularity.desc">
+  Sort order for results. Options:
+  - `popularity.asc` / `popularity.desc`
+  - `release_date.asc` / `release_date.desc` (movies)
+  - `first_air_date.asc` / `first_air_date.desc` (TV)
+  - `vote_average.asc` / `vote_average.desc`
+  - `vote_count.asc` / `vote_count.desc`
+  - `revenue.asc` / `revenue.desc` (movies only)
+</ParamField>
+
+### Filter Parameters
+
+<ParamField query="with_genres" type="string">
+  Comma-separated genre IDs (e.g., `28,12,16`)
+</ParamField>
+
+<ParamField query="release_date" type="string">
+  Date range in format `YYYY-MM-DD..YYYY-MM-DD`
+  - For movies: filters `primary_release_date`
+  - For TV: filters `first_air_date`
+</ParamField>
+
+<ParamField query="with_runtime" type="string">
+  Runtime range in minutes: `min..max` (e.g., `90..120`)
+</ParamField>
+
+<ParamField query="rating" type="string">
+  Vote average range: `min..max` (e.g., `7.0..10.0`)
+</ParamField>
+
+<ParamField query="vote_count" type="integer">
+  Minimum number of votes
+</ParamField>
+
+<ParamField query="watch_providers" type="string">
+  Comma-separated watch provider IDs (e.g., `8,9,119` for Netflix, Amazon, Disney+)
+</ParamField>
+
+<ParamField query="watch_region" type="string">
+  ISO 3166-1 country code for watch providers (e.g., `US`, `GB`)
+</ParamField>
+
+<ParamField query="with_original_language" type="string">
+  ISO 639-1 language code (e.g., `en`, `es`, `ja`)
+</ParamField>
+
+<ParamField query="with_networks" type="string">
+  Comma-separated network IDs (TV shows only)
+</ParamField>
+
+<ParamField query="with_cast" type="string">
+  Comma-separated person IDs for cast members
+</ParamField>
+
+<ParamField query="with_crew" type="string">
+  Comma-separated person IDs for crew members
+</ParamField>
+
+<ParamField query="with_companies" type="string">
+  Comma-separated production company IDs
+</ParamField>
+
+<ParamField query="with_keywords" type="string">
+  Comma-separated keyword IDs
+</ParamField>
+
+<ParamField query="status" type="string">
+  Release status (TV shows). Options:
+  - `Returning Series`
+  - `Planned`
+  - `In Production`
+  - `Ended`
+  - `Canceled`
+  - `Pilot`
+</ParamField>
+
+<ParamField query="type" type="string">
+  Type of TV show. Options:
+  - `Documentary`
+  - `News`
+  - `Miniseries`
+  - `Reality`
+  - `Scripted`
+  - `Talk Show`
+  - `Video`
+</ParamField>
+
+### Response
+
+<ResponseField name="page" type="integer" required>
+  Current page number
+</ResponseField>
+
+<ResponseField name="results" type="array" required>
+  Array of movie or TV show objects matching the filters
+</ResponseField>
+
+<ResponseField name="total_pages" type="integer" required>
+  Total number of pages available
+</ResponseField>
+
+<ResponseField name="total_results" type="integer" required>
+  Total number of results found
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/3V4kLQg0kSqPLctI5ziYWabAZYF.jpg",
+      "genre_ids": [28, 12, 878],
+      "id": 912649,
+      "original_language": "en",
+      "original_title": "Venom: The Last Dance",
+      "overview": "Eddie and Venom are on the run...",
+      "popularity": 5820.902,
+      "poster_path": "/aosm8NMQ3UyoBVpSxyimorCQykC.jpg",
+      "release_date": "2024-10-22",
+      "title": "Venom: The Last Dance",
+      "video": false,
+      "vote_average": 6.753,
+      "vote_count": 625
+    }
+  ],
+  "total_pages": 250,
+  "total_results": 5000
+}
+```
+
+---
+
+## Usage Examples
+
+### Basic Search
+
+```javascript
+const response = await fetch('/api/search/query?query=inception&page=1');
+const data = await response.json();
+```
+
+### Filter Action Movies from 2020-2024
+
+```javascript
+const response = await fetch(
+  '/api/search/filter?' +
+  'media_type=movie&' +
+  'with_genres=28&' +
+  'release_date=2020-01-01..2024-12-31&' +
+  'sort_by=popularity.desc&' +
+  'page=1'
+);
+const data = await response.json();
+```
+
+### Filter Highly Rated Sci-Fi Movies
+
+```javascript
+const response = await fetch(
+  '/api/search/filter?' +
+  'media_type=movie&' +
+  'with_genres=878&' +
+  'rating=8.0..10.0&' +
+  'vote_count=1000&' +
+  'sort_by=vote_average.desc&' +
+  'page=1'
+);
+const data = await response.json();
+```
+
+### Filter TV Shows on Netflix
+
+```javascript
+const response = await fetch(
+  '/api/search/filter?' +
+  'media_type=tv&' +
+  'watch_providers=8&' +
+  'watch_region=US&' +
+  'status=Returning Series&' +
+  'sort_by=popularity.desc&' +
+  'page=1'
+);
+const data = await response.json();
+```
+
+### Advanced Filters with Runtime and Language
+
+```javascript
+const response = await fetch(
+  '/api/search/filter?' +
+  'media_type=movie&' +
+  'with_genres=18&' +
+  'with_original_language=en&' +
+  'with_runtime=90..150&' +
+  'rating=7.5..10.0&' +
+  'sort_by=vote_count.desc&' +
+  'page=1'
+);
+const data = await response.json();
+```
+
+---
+
+## Common Genre IDs
+
+### Movie Genres
+
+- `28` - Action
+- `12` - Adventure
+- `16` - Animation
+- `35` - Comedy
+- `80` - Crime
+- `99` - Documentary
+- `18` - Drama
+- `10751` - Family
+- `14` - Fantasy
+- `36` - History
+- `27` - Horror
+- `10402` - Music
+- `9648` - Mystery
+- `10749` - Romance
+- `878` - Science Fiction
+- `10770` - TV Movie
+- `53` - Thriller
+- `10752` - War
+- `37` - Western
+
+### TV Genres
+
+- `10759` - Action & Adventure
+- `16` - Animation
+- `35` - Comedy
+- `80` - Crime
+- `99` - Documentary
+- `18` - Drama
+- `10751` - Family
+- `10762` - Kids
+- `9648` - Mystery
+- `10763` - News
+- `10764` - Reality
+- `10765` - Sci-Fi & Fantasy
+- `10766` - Soap
+- `10767` - Talk
+- `10768` - War & Politics
+- `37` - Western
+
+---
+
+## Error Responses
+
+### Rate Limit Exceeded (429)
+
+```json
+"Rate Limit Exceeded"
+```
+
+Returned when the rate limit of 40 requests per 10 seconds is exceeded.
+
+### Bad Request (400)
+
+```json
+{
+  "success": false,
+  "status_code": 22,
+  "status_message": "Invalid page: Pages start at 1 and max at 1000."
+}
+```
+
+Returned when invalid parameters are provided.

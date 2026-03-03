@@ -1,0 +1,235 @@
+---
+title: 'Development Guide'
+description: 'Complete guide to setting up and developing Popcorn Vision locally'
+icon: 'code'
+---
+
+## Getting Started
+
+This guide will help you set up your local development environment for Popcorn Vision.
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or higher)
+- **pnpm** (v9.15.5 or higher)
+- **Git**
+- **TMDB API Key** (get one at [themoviedb.org](https://www.themoviedb.org/settings/api))
+
+<Info>
+Popcorn Vision uses **pnpm** as its package manager. The project is configured to use pnpm 9.15.5+.
+</Info>
+
+## Setting Up Your Development Environment
+
+<Steps>
+  <Step title="Fork and Clone the Repository">
+    First, fork the repository on GitHub, then clone your fork:
+
+    ```bash
+    git clone https://github.com/{your-username}/popcorn-vision.git
+    cd popcorn-vision
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all project dependencies using pnpm:
+
+    ```bash
+    pnpm install
+    ```
+
+    This will install all dependencies listed in `package.json`, including Next.js, React, Tailwind CSS, and other required packages.
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Copy the example environment file and configure your TMDB API credentials:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Edit `.env` and add your TMDB API credentials:
+
+    ```bash
+    API_URL="https://api.themoviedb.org/3"
+    API_KEY="your_api_key_here"
+    API_READ="your_api_read_token_here"
+    GA_MEASUREMENT_ID="your_google_analytics_id" # Optional
+    ```
+
+    <Info>
+    The image URLs are already pre-configured in `.env.example` and don't need to be changed.
+    </Info>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the development server:
+
+    ```bash
+    pnpm dev
+    ```
+
+    The application will be available at [http://localhost:3000](http://localhost:3000)
+  </Step>
+</Steps>
+
+## Available NPM Scripts
+
+Popcorn Vision includes several npm scripts to help with development:
+
+<CodeGroup>
+```bash Development
+# Start the development server with hot reload
+pnpm dev
+```
+
+```bash Build
+# Create an optimized production build
+pnpm build
+```
+
+```bash Production
+# Start the production server (requires build first)
+pnpm start
+```
+
+```bash Lint
+# Run ESLint to check code quality
+pnpm lint
+```
+</CodeGroup>
+
+### Script Details
+
+- **`pnpm dev`** - Starts Next.js in development mode with hot module replacement (HMR). Changes to files are automatically reflected in the browser.
+- **`pnpm build`** - Creates an optimized production build. Run this before deploying or testing production performance.
+- **`pnpm start`** - Starts the production server. You must run `pnpm build` first.
+- **`pnpm lint`** - Runs ESLint using Next.js's built-in configuration to check for code quality issues.
+
+## Project Structure
+
+Understanding the project structure will help you navigate the codebase:
+
+```
+popcorn-vision/
+├── public/              # Static assets (images, fonts, etc.)
+├── src/
+│   ├── app/            # Next.js 14 App Router pages
+│   │   ├── (auth)/     # Authentication routes
+│   │   ├── (films)/    # Movie and TV show routes
+│   │   ├── (person)/   # Actor/crew detail routes
+│   │   ├── (search)/   # Search functionality routes
+│   │   ├── (user)/     # User profile routes
+│   │   ├── api/        # API routes
+│   │   └── legal/      # Legal pages (terms, privacy)
+│   ├── components/     # React components
+│   │   ├── Auth/       # Authentication components
+│   │   ├── Film/       # Movie/TV show components
+│   │   ├── Layout/     # Layout components
+│   │   ├── Modals/     # Modal dialogs
+│   │   ├── Person/     # Actor/crew components
+│   │   ├── Search/     # Search components
+│   │   └── Skeleton/   # Loading skeletons
+│   ├── config/         # Configuration files
+│   ├── data/           # Static data and constants
+│   ├── hooks/          # Custom React hooks
+│   ├── lib/            # Utility libraries
+│   ├── utils/          # Helper functions
+│   ├── zustand/        # Zustand state management stores
+│   └── middleware.js   # Next.js middleware
+├── .env.example        # Example environment variables
+├── .eslintrc.json      # ESLint configuration
+├── .prettierrc         # Prettier configuration
+├── next.config.mjs     # Next.js configuration
+├── tailwind.config.js  # Tailwind CSS configuration
+└── package.json        # Project dependencies and scripts
+```
+
+### Key Directories
+
+- **`src/app/`** - Next.js 14 uses the App Router. Each folder with route groups (in parentheses) organizes related pages.
+- **`src/components/`** - Reusable React components organized by feature.
+- **`src/zustand/`** - Global state management using Zustand for user data, favorites, and watchlist.
+- **`src/lib/`** - Third-party library configurations and API clients.
+- **`src/hooks/`** - Custom React hooks for shared logic.
+
+## Development Workflow
+
+### Hot Module Replacement (HMR)
+
+When running `pnpm dev`, Next.js automatically enables HMR:
+
+- **Component changes** are reflected instantly without page refresh
+- **CSS changes** are applied immediately
+- **API route changes** require a manual refresh
+- **Configuration file changes** (e.g., `next.config.mjs`) require server restart
+
+### Working with the TMDB API
+
+Popcorn Vision integrates with The Movie Database (TMDB) API:
+
+1. All API calls are made through the server-side or API routes to keep credentials secure
+2. API utilities are located in `src/lib/`
+3. API responses are cached using Next.js's built-in caching
+4. Rate limiting is handled by the `limiter` package
+
+### State Management
+
+The project uses **Zustand** for global state management:
+
+- User authentication state
+- Favorites and watchlist
+- UI state (modals, filters, etc.)
+
+State stores are located in `src/zustand/`.
+
+### Styling
+
+Popcorn Vision uses a combination of styling solutions:
+
+- **Tailwind CSS** - Utility-first CSS framework
+- **DaisyUI** - Component library built on Tailwind
+- **Material UI** - For specific components like date pickers
+- **Custom theme** - Dark theme configured in `tailwind.config.js`
+
+## Running Tests
+
+<Info>
+Popcorn Vision currently does not have a test suite configured. Contributions to add testing infrastructure (Jest, React Testing Library, Playwright) are welcome!
+</Info>
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is already in use, you can specify a different port:
+
+```bash
+pnpm dev -- -p 3001
+```
+
+### API Errors
+
+If you're seeing API errors:
+
+1. Verify your TMDB API key is correct in `.env`
+2. Check that you have both `API_KEY` and `API_READ` configured
+3. Ensure your API key has the necessary permissions
+
+### Build Errors
+
+If you encounter build errors:
+
+1. Clear the Next.js cache: `rm -rf .next`
+2. Delete `node_modules` and reinstall: `rm -rf node_modules && pnpm install`
+3. Check for ESLint errors: `pnpm lint`
+
+## Next Steps
+
+Now that you have your development environment set up:
+
+- Review the [Code Style](/contributing/code-style) guidelines
+- Read the [Contributing Guidelines](/contributing/guidelines)
+- Check the [GitHub Issues](https://github.com/fachryafrz/popcorn-vision/issues) for tasks to work on

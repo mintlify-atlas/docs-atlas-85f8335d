@@ -1,80 +1,237 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get Popcorn Vision up and running on your local machine in under 5 minutes.
 ---
 
-## Get started in three steps
+## Get Started in 5 Minutes
 
-Get your documentation site running locally and make your first customization.
+This guide will help you set up Popcorn Vision locally and browse movies and TV shows in no time.
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Clone the Repository">
+    First, clone the Popcorn Vision repository to your local machine:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    git clone https://github.com/fachryafrz/popcorn-vision.git
+    cd popcorn-vision
+    ```
 
-### Step 2: Deploy your changes
+    <Note>
+      **Fork First?** If you plan to contribute, fork the repository on GitHub first, then clone your fork instead.
+    </Note>
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Install Dependencies">
+    Popcorn Vision uses `pnpm` as its package manager. Install the dependencies:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    <CodeGroup>
+      ```bash pnpm (Recommended)
+      pnpm install
+      ```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+      ```bash npm
+      npm install
+      ```
 
-### Step 3: Go live
+      ```bash yarn
+      yarn install
+      ```
+    </CodeGroup>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    <Tip>
+      The project specifies `pnpm@9.15.5` in `package.json`. If you don't have pnpm installed, run:
+      ```bash
+      npm install -g pnpm@9.15.5
+      ```
+    </Tip>
+  </Step>
 
-## Next steps
+  <Step title="Set Up Environment Variables">
+    Copy the example environment file and configure your API credentials:
 
-Now that you have your docs running, explore these key features:
+    ```bash
+    cp .env.example .env
+    ```
+
+    Now, open `.env` and add your TMDB API credentials:
+
+    ```bash .env
+    # API
+    API_URL="https://api.themoviedb.org/3"
+    API_KEY="your_api_key_here"
+    API_READ="your_read_access_token_here"
+
+    # IMAGE URLs (pre-configured, no changes needed)
+    NEXT_PUBLIC_API_IMAGE_45="https://image.tmdb.org/t/p/w45"
+    NEXT_PUBLIC_API_IMAGE_92="https://image.tmdb.org/t/p/w92"
+    # ... (other image sizes are already set)
+
+    # Google Analytics (optional)
+    GA_MEASUREMENT_ID=""
+    ```
+
+    ### Getting Your TMDB API Credentials
+
+    <Accordion title="How to get TMDB API Key">
+      1. Go to [The Movie Database (TMDB)](https://www.themoviedb.org/)
+      2. Create a free account or sign in
+      3. Navigate to **Settings** → **API**
+      4. Request an API key by selecting "Developer"
+      5. Fill out the application form (choose "Website" or "Personal" for type)
+      6. Copy your **API Key (v3 auth)** and **API Read Access Token (v4 auth)**
+      7. Paste them into your `.env` file
+    </Accordion>
+
+    <Warning>
+      **Keep your API keys secure!** Never commit your `.env` file to version control. The `.gitignore` file already excludes it.
+    </Warning>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the Next.js development server:
+
+    <CodeGroup>
+      ```bash pnpm (Recommended)
+      pnpm dev
+      ```
+
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+    </CodeGroup>
+
+    You should see output similar to:
+
+    ```bash
+    ▲ Next.js 14.2.35
+    - Local:        http://localhost:3000
+    - Environments: .env
+
+    ✓ Ready in 2.5s
+    ```
+  </Step>
+
+  <Step title="Access the Application">
+    Open your browser and navigate to:
+
+    ```
+    http://localhost:3000
+    ```
+
+    You'll see the Popcorn Vision homepage with:
+    - **Hero Slider**: Featuring trending movies/TV shows
+    - **Now Playing**: Currently available content
+    - **Upcoming**: Future releases
+    - **Top Rated**: Highly-rated content
+    - **Trending**: What's popular this week
+    - **Genre Sections**: Horror, Comedy, Sci-Fi, and more
+
+    <img src="https://fachryafrz.com/projects/popcorn-vision/home.png" alt="Popcorn Vision Homepage" />
+  </Step>
+</Steps>
+
+## What's Next?
+
+Now that you have Popcorn Vision running, here's what you can explore:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Browse Movies" icon="film">
+    Explore the extensive movie database with detailed information, trailers, and cast details
+  </Card>
+  <Card title="Discover TV Shows" icon="tv">
+    Track your favorite series with season and episode information
+  </Card>
+  <Card title="Use Advanced Search" icon="magnifying-glass">
+    Filter content by genre, release date, streaming platform, actors, and more
+  </Card>
+  <Card title="Login with TMDB" icon="user">
+    Authenticate to save favorites, create watchlists, and rate content
+  </Card>
 </CardGroup>
 
+## Code Overview
+
+Here's how the homepage fetches and displays content:
+
+```javascript src/app/page.js
+import { axios } from "@/lib/axios";
+import FilmSlider from "@/components/Film/Slider";
+import Trending from "@/components/Film/Trending";
+
+export default async function Home({ type = "movie" }) {
+  // Fetch trending content
+  const trending = await axios
+    .get(`/trending/${type}/week`)
+    .then((r) => r.data.results);
+
+  // Fetch now playing
+  const nowPlaying = await axios
+    .get(`/discover/${type}`, {
+      params: {
+        region: "US",
+        include_adult: false,
+        sort_by: "popularity.desc",
+      },
+    })
+    .then((r) => r.data);
+
+  return (
+    <div>
+      <FilmSlider films={nowPlaying} title="Now Playing" />
+      <Trending film={trending[0]} type={type} />
+    </div>
+  );
+}
+```
+
+The axios instance is pre-configured with TMDB API credentials:
+
+```javascript src/lib/axios.js
+import Axios from "axios";
+
+export const axios = Axios.create({
+  baseURL: process.env.API_URL,
+  params: { api_key: process.env.API_KEY },
+  adapter: "fetch",
+  fetchOptions: {
+    next: { revalidate: 3600 }, // Cache for 1 hour
+  },
+});
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="API requests failing">
+    - Verify your `API_KEY` and `API_READ` tokens are correct in `.env`
+    - Ensure you've copied `.env.example` to `.env`
+    - Check that your TMDB API key is active (newly created keys are instant)
+    - Restart the dev server after changing environment variables
+  </Accordion>
+
+  <Accordion title="Images not loading">
+    The image URLs in `.env` are pre-configured. If images aren't loading:
+    - Check your internet connection
+    - Verify the TMDB API is responding correctly
+    - Open browser DevTools and check the Network tab for 404 errors
+  </Accordion>
+
+  <Accordion title="pnpm command not found">
+    Install pnpm globally:
+    ```bash
+    npm install -g pnpm@9.15.5
+    ```
+    Or use npx:
+    ```bash
+    npx pnpm@9.15.5 install
+    ```
+  </Accordion>
+</AccordionGroup>
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  For detailed installation instructions and advanced configuration, see the [Installation Guide](/installation).
 </Note>

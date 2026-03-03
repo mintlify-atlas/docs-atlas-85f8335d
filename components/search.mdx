@@ -1,0 +1,509 @@
+---
+title: Search Components
+description: Search interface, filters, and autocomplete components
+---
+
+## Overview
+
+Search components provide powerful filtering and discovery features for movies and TV shows. The system includes a smart autocomplete search bar, advanced filters for genres, cast, ratings, and more.
+
+## SearchBar
+
+Intelligent search component with autocomplete, keyboard navigation, and debounced API calls.
+
+### Props
+
+<ParamField path="placeholder" type="string" default="Type / to search">
+  Placeholder text shown in the search input
+</ParamField>
+
+### Key Features
+
+<CardGroup cols={2}>
+  <Card title="Autocomplete" icon="wand-magic-sparkles">
+    Real-time suggestions as you type with keyboard navigation
+  </Card>
+  
+  <Card title="Keyboard Shortcuts" icon="keyboard">
+    Press `/` to focus, `Esc` to blur, arrow keys to navigate
+  </Card>
+  
+  <Card title="Debounced Search" icon="clock">
+    300ms debounce to reduce API calls
+  </Card>
+  
+  <Card title="Typewriter Effect" icon="typewriter">
+    Animated placeholder text rotation
+  </Card>
+</CardGroup>
+
+### Usage Example
+
+```jsx Layout/Navbar.jsx
+import { SearchBar } from "@/components/Layout/SearchBar";
+
+export default function Navbar() {
+  return (
+    <nav>
+      <SearchBar placeholder="Type / to search" />
+    </nav>
+  );
+}
+```
+
+### State Management
+
+The SearchBar uses `nuqs` for URL state management:
+
+```jsx
+const [query, setQuery] = useQueryState("query", parseAsString);
+const [searchInput, setSearchInput] = useState("");
+const [debouncedQuery, setDebouncedQuery] = useState("");
+```
+
+### Autocomplete Implementation
+
+<Accordion title="Debounced Search">
+  ```jsx
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      const trimmedValue = value.trim();
+      if (trimmedValue) {
+        setDebouncedQuery(trimmedValue.replace(/\s+/g, "+"));
+      } else {
+        setDebouncedQuery("");
+      }
+    }, 300),
+    []
+  );
+  ```
+</Accordion>
+
+<Accordion title="SWR Data Fetching">
+  ```jsx
+  const { data: autocompleteResults, isLoading } = useSWR(
+    debouncedQuery ? `/api/search/query?query=${debouncedQuery}` : null,
+    (endpoint) => axios.get(endpoint).then(({ data }) => data)
+  );
+  
+  const autocompleteData = autocompleteResults?.results
+    ?.slice(0, 10)
+    .filter((item, index, self) => {
+      const title = (item.title ?? item.name).toLowerCase();
+      return index === self.findIndex(
+        (i) => (i.title ?? i.name).toLowerCase() === title
+      );
+    }) || [];
+  ```
+</Accordion>
+
+<Accordion title="Keyboard Navigation">
+  ```jsx
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "/") {
+        e.preventDefault();
+        searchRef.current.focus();
+      }
+      
+      if (e.key === "Escape") {
+        searchRef.current.blur();
+      }
+      
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlightedIndex((prev) => 
+          prev === totalItems - 1 ? 0 : prev + 1
+        );
+      }
+      
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlightedIndex((prev) => 
+          prev <= 0 ? totalItems - 1 : prev - 1
+        );
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [autocompleteData, highlightedIndex]);
+  ```
+</Accordion>
+
+---
+
+## Filter Components
+
+Advanced filtering system for discovering films by multiple criteria.
+
+### Genre Filter
+
+Multi-select genre filter with AND/OR logic.
+
+#### Props
+
+<ParamField path="genresData" type="array" required>
+  Array of genre objects with `id` and `name` properties
+</ParamField>
+
+#### Features
+
+```jsx Filter/Genre.jsx
+import { useQueryState, parseAsString } from "nuqs";
+import Select from "react-select";
+
+export default function Genre({ genresData }) {
+  const [withGenres, setWithGenres] = useQueryState("with_genres", parseAsString);
+  const [toggleSeparation, setToggleSeparation] = useState(AND_SEPARATION);
+  
+  const separation = toggleSeparation === AND_SEPARATION ? "," : "|";
+  
+  const handleGenreChange = (selectedOption) => {
+    const value = selectedOption.map((option) => option.value);
+    
+    if (value.length === 0) {
+      setWithGenres(null);
+    } else {
+      setWithGenres(value.join(separation));
+    }
+  };
+  
+  return (
+    <section>
+      {/* AND/OR Toggle */}
+      <div className="flex justify-between">
+        <span>Genre</span>
+        <div>
+          <button onClick={() => handleSeparator(AND_SEPARATION)}>AND</button>
+          <button onClick={() => handleSeparator(OR_SEPARATION)}>OR</button>
+        </div>
+      </div>
+      
+      {/* Multi-select */}
+      <Select
+        options={genresOptions}
+        onChange={handleGenreChange}
+        value={genre}
+        isMulti
+      />
+    </section>
+  );
+}
+```
+
+<Info>
+  **AND vs OR Logic**
+  - AND (`,`): Films must have ALL selected genres
+  - OR (`|`): Films can have ANY selected genre
+  
+  Example: `with_genres=28,12` (Action AND Adventure) vs `with_genres=28|12` (Action OR Adventure)
+</Info>
+
+---
+
+### Cast Filter
+
+Asynchronous actor search with multi-select.
+
+#### Implementation
+
+```jsx Filter/Cast.jsx
+import AsyncSelect from "react-select/async";
+import { debounce } from "@mui/material";
+
+export default function Cast() {
+  const [withCast, setWithCast] = useQueryState("with_cast", parseAsString);
+  const [cast, setCast] = useState([]);
+  
+  const castsLoadOptions = debounce(async (inputValue, callback) => {
+    const { data } = await axios.get(`/api/search/person`, {
+      params: { query: inputValue },
+    });
+    
+    const options = data.results.map((person) => ({
+      value: person.id,
+      label: person.name,
+    }));
+    
+    callback(options);
+  }, 1000);
+  
+  const handleCastChange = (selectedOption) => {
+    const value = selectedOption.map((option) => option.value);
+    setWithCast(value.length === 0 ? null : value.join(separation));
+  };
+  
+  return (
+    <AsyncSelect
+      noOptionsMessage={() => "Type to search"}
+      loadingMessage={() => "Searching..."}
+      loadOptions={castsLoadOptions}
+      onChange={handleCastChange}
+      value={cast}
+      placeholder="Search actor..."
+      isMulti
+    />
+  );
+}
+```
+
+<Tabs>
+  <Tab title="Cast Hydration">
+    When loading from URL parameters, the component fetches full actor details:
+    
+    ```jsx
+    useEffect(() => {
+      if (withCast) {
+        const splitted = withCast.split(separation);
+        
+        Promise.all(
+          splitted.map((castId) =>
+            axios.get(`/api/person/${castId}`).then(({ data }) => data)
+          )
+        ).then((responses) => {
+          const searchCast = responses.map((cast) => ({
+            value: cast.id,
+            label: cast.name,
+          }));
+          setCast(searchCast);
+        });
+      }
+    }, [withCast, separation]);
+    ```
+  </Tab>
+  
+  <Tab title="Debouncing">
+    Search requests are debounced by 1000ms to prevent excessive API calls:
+    
+    ```jsx
+    const castsLoadOptions = debounce(async (inputValue, callback) => {
+      // ... fetch logic
+    }, 1000);
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### Rating Filter
+
+Slider-based rating range filter (0-10 scale).
+
+#### Props
+
+<ParamField path="sliderStyles" type="object" required>
+  MUI Slider style object
+</ParamField>
+
+#### Implementation
+
+```jsx Filter/Rating.jsx
+import { Slider } from "@mui/material";
+import { useQueryState, parseAsString } from "nuqs";
+
+export default function Rating({ sliderStyles }) {
+  const [ratingParam, setRatingParam] = useQueryState("rating", parseAsString);
+  const [ratingSlider, setRatingSlider] = useState([0, 10]);
+  
+  const handleRatingChange = (event, newValue) => {
+    if (!newValue) {
+      setRatingParam(null);
+    } else {
+      setRatingParam(`${newValue[0]}..${newValue[1]}`);
+    }
+  };
+  
+  const ratingMarks = [
+    { value: 0, label: ratingSlider[0] },
+    { value: 10, label: ratingSlider[1] },
+  ];
+  
+  return (
+    <section>
+      <span>Rating</span>
+      <Slider
+        value={ratingSlider}
+        onChange={(e, newValue) => setRatingSlider(newValue)}
+        onChangeCommitted={handleRatingChange}
+        step={0.1}
+        min={0}
+        max={10}
+        marks={ratingMarks}
+        sx={sliderStyles}
+      />
+    </section>
+  );
+}
+```
+
+<Note>
+  The slider uses `onChange` for immediate visual feedback and `onChangeCommitted` for updating the URL, reducing unnecessary re-renders during dragging.
+</Note>
+
+---
+
+## Available Filters
+
+Popcorn Vision includes these filter components:
+
+<CardGroup cols={3}>
+  <Card title="Genre" icon="masks-theater">
+    Multi-select with AND/OR logic
+  </Card>
+  
+  <Card title="Cast" icon="users">
+    Async search for actors
+  </Card>
+  
+  <Card title="Crew" icon="clapperboard">
+    Search directors, writers, etc.
+  </Card>
+  
+  <Card title="Company" icon="building">
+    Filter by production company
+  </Card>
+  
+  <Card title="Network" icon="tower-broadcast">
+    TV network filter (TV shows only)
+  </Card>
+  
+  <Card title="Keyword" icon="tag">
+    Filter by TMDB keywords
+  </Card>
+  
+  <Card title="Language" icon="language">
+    Filter by original language
+  </Card>
+  
+  <Card title="Rating" icon="star">
+    Range slider (0-10)
+  </Card>
+  
+  <Card title="Rating Count" icon="users-viewfinder">
+    Minimum number of votes
+  </Card>
+  
+  <Card title="Release Date" icon="calendar">
+    Date range picker
+  </Card>
+</CardGroup>
+
+---
+
+## URL State Management
+
+All filters use `nuqs` for managing URL query parameters:
+
+```jsx
+import { useQueryState, parseAsString } from "nuqs";
+
+const [withGenres, setWithGenres] = useQueryState("with_genres", parseAsString);
+const [rating, setRating] = useQueryState("rating", parseAsString);
+const [query, setQuery] = useQueryState("query", parseAsString);
+```
+
+### Benefits
+
+<Steps>
+  <Step title="Shareable URLs">
+    Users can bookmark or share URLs with filters applied
+  </Step>
+  
+  <Step title="Browser Navigation">
+    Back/forward buttons work correctly with filter changes
+  </Step>
+  
+  <Step title="SSR Compatible">
+    Filters can be read on the server for initial page load
+  </Step>
+  
+  <Step title="Type Safety">
+    `parseAsString`, `parseAsInteger`, etc. provide type safety
+  </Step>
+</Steps>
+
+---
+
+## API Integration
+
+Search and filter components work with these API routes:
+
+<CodeGroup>
+```javascript Autocomplete Search
+GET /api/search/query?query=inception
+// Returns: { results: [...films] }
+```
+
+```javascript Person Search
+GET /api/search/person?query=leonardo
+// Returns: { results: [...actors] }
+```
+
+```javascript Filter Search
+GET /api/discover/movie?with_genres=28,12&rating=7..10
+// Returns: { results: [...films], page, total_pages }
+```
+</CodeGroup>
+
+---
+
+## Styling
+
+Filters use custom styled react-select components:
+
+```jsx utils/inputStyles.js
+export const inputStyles = {
+  control: (styles) => ({
+    ...styles,
+    backgroundColor: "#1a1f2e",
+    borderColor: "#2a3142",
+    "&:hover": {
+      borderColor: "#3a4152",
+    },
+  }),
+  menu: (styles) => ({
+    ...styles,
+    backgroundColor: "#1a1f2e",
+  }),
+  option: (styles, { isFocused, isSelected }) => ({
+    ...styles,
+    backgroundColor: isSelected
+      ? "#3b82f6"
+      : isFocused
+      ? "#2a3142"
+      : "transparent",
+  }),
+};
+```
+
+---
+
+## Key Files
+
+<CodeGroup>
+```text Search Components
+src/components/
+├── Layout/
+│   └── SearchBar.jsx       # Main search component
+└── Search/
+    └── Filter/
+        ├── Cast.jsx        # Actor filter
+        ├── Crew.jsx        # Director/writer filter
+        ├── Genre.jsx       # Genre multi-select
+        ├── Rating.jsx      # Rating slider
+        ├── RatingCount.jsx # Vote count filter
+        ├── ReleaseDate.jsx # Date range picker
+        ├── Company.jsx     # Production company
+        ├── Network.jsx     # TV network
+        ├── Keyword.jsx     # Keyword search
+        └── Language.jsx    # Language filter
+```
+
+```text Constants
+src/lib/constants.js
+
+export const AND_SEPARATION = "AND";
+export const OR_SEPARATION = "OR";
+```
+</CodeGroup>

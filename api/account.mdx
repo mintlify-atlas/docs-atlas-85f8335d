@@ -1,0 +1,410 @@
+---
+title: 'Account'
+description: 'Manage user account, favorites, watchlist, and ratings'
+---
+
+The account API provides endpoints for managing user account data including profile information, favorites, watchlist, and ratings. All account endpoints require authentication.
+
+## Get Account Details
+
+Retrieve the authenticated user's account information.
+
+<CodeGroup>
+```bash GET /api/account
+curl -X GET https://your-domain.com/api/account
+```
+</CodeGroup>
+
+### Response
+
+<ResponseField name="id" type="integer" required>
+  The account ID
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The account name
+</ResponseField>
+
+<ResponseField name="username" type="string" required>
+  The account username
+</ResponseField>
+
+<ResponseField name="include_adult" type="boolean" required>
+  Whether adult content is included
+</ResponseField>
+
+<ResponseField name="iso_639_1" type="string" required>
+  The language code
+</ResponseField>
+
+<ResponseField name="iso_3166_1" type="string" required>
+  The country code
+</ResponseField>
+
+<ResponseField name="avatar" type="object" required>
+  Avatar information including gravatar hash
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "id": 12345,
+  "name": "John Doe",
+  "username": "johndoe",
+  "include_adult": false,
+  "iso_639_1": "en",
+  "iso_3166_1": "US",
+  "avatar": {
+    "gravatar": {
+      "hash": "a1b2c3d4e5f6g7h8"
+    }
+  }
+}
+```
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message when not authenticated
+</ResponseField>
+
+```json
+{
+  "message": "You are not authenticated"
+}
+```
+
+---
+
+## Get Account Lists
+
+Retrieve favorites, watchlist, or rated items for the authenticated user.
+
+<CodeGroup>
+```bash GET /api/account/{account_id}/{section}/{media_type}
+curl -X GET "https://your-domain.com/api/account/12345/favorites/movies?language=en-US&page=1&sort_by=created_at.desc"
+```
+</CodeGroup>
+
+### Path Parameters
+
+<ParamField path="account_id" type="integer" required>
+  The account ID from `/api/account`
+</ParamField>
+
+<ParamField path="section" type="string" required>
+  The section to retrieve. Options:
+  - `favorites` - User's favorite items
+  - `watchlist` - User's watchlist items
+  - `rated` - User's rated items
+</ParamField>
+
+<ParamField path="media_type" type="string" required>
+  The type of media. Options:
+  - `movies` - Movies
+  - `tv` - TV shows
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="language" type="string" default="en-US">
+  ISO 639-1 language code for the results
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination
+</ParamField>
+
+<ParamField query="sort_by" type="string" default="created_at.desc">
+  Sort order. Options:
+  - `created_at.asc` - Oldest first
+  - `created_at.desc` - Newest first
+</ParamField>
+
+### Response
+
+<ResponseField name="page" type="integer" required>
+  Current page number
+</ResponseField>
+
+<ResponseField name="results" type="array" required>
+  Array of movie or TV show objects
+</ResponseField>
+
+<ResponseField name="total_pages" type="integer" required>
+  Total number of pages
+</ResponseField>
+
+<ResponseField name="total_results" type="integer" required>
+  Total number of results
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "page": 1,
+  "results": [
+    {
+      "id": 550,
+      "title": "Fight Club",
+      "overview": "A ticking-time-bomb insomniac...",
+      "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      "backdrop_path": "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+      "release_date": "1999-10-15",
+      "vote_average": 8.4,
+      "vote_count": 26000
+    }
+  ],
+  "total_pages": 5,
+  "total_results": 98
+}
+```
+
+---
+
+## Add to Favorites or Watchlist
+
+Add or remove an item from the user's favorites or watchlist.
+
+<CodeGroup>
+```bash POST /api/account/{account_id}/{section}
+curl -X POST https://your-domain.com/api/account/12345/favorite \
+  -H "Content-Type: application/json" \
+  -d '{
+    "media_type": "movie",
+    "media_id": 550,
+    "favorite": true
+  }'
+```
+</CodeGroup>
+
+### Path Parameters
+
+<ParamField path="account_id" type="integer" required>
+  The account ID from `/api/account`
+</ParamField>
+
+<ParamField path="section" type="string" required>
+  The section to update. Options:
+  - `favorite` - Add/remove from favorites
+  - `watchlist` - Add/remove from watchlist
+</ParamField>
+
+### Body Parameters
+
+<ParamField body="media_type" type="string" required>
+  The type of media. Options:
+  - `movie` - Movie
+  - `tv` - TV show
+</ParamField>
+
+<ParamField body="media_id" type="integer" required>
+  The ID of the movie or TV show
+</ParamField>
+
+<ParamField body="favorite" type="boolean">
+  Whether to add (true) or remove (false) from favorites. Required when section is `favorite`.
+</ParamField>
+
+<ParamField body="watchlist" type="boolean">
+  Whether to add (true) or remove (false) from watchlist. Required when section is `watchlist`.
+</ParamField>
+
+### Response
+
+<ResponseField name="favorite" type="boolean">
+  The new favorite status (when updating favorites)
+</ResponseField>
+
+<ResponseField name="watchlist" type="boolean">
+  The new watchlist status (when updating watchlist)
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "favorite": true
+}
+```
+
+### Example: Add to Watchlist
+
+```bash
+curl -X POST https://your-domain.com/api/account/12345/watchlist \
+  -H "Content-Type: application/json" \
+  -d '{
+    "media_type": "tv",
+    "media_id": 1399,
+    "watchlist": true
+  }'
+```
+
+---
+
+## Rate Media
+
+Add or update a rating for a movie or TV show.
+
+<CodeGroup>
+```bash POST /api/{media_type}/{media_id}/rating
+curl -X POST https://your-domain.com/api/movie/550/rating \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 8.5
+  }'
+```
+</CodeGroup>
+
+### Path Parameters
+
+<ParamField path="media_type" type="string" required>
+  The type of media. Options:
+  - `movie` - Movie
+  - `tv` - TV show
+</ParamField>
+
+<ParamField path="media_id" type="integer" required>
+  The ID of the movie or TV show
+</ParamField>
+
+### Body Parameters
+
+<ParamField body="rating" type="number" required>
+  Rating value between 0.5 and 10.0 (in increments of 0.5)
+</ParamField>
+
+### Response
+
+<ResponseField name="rated" type="object" required>
+  Object containing the rating value
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "rated": {
+    "value": 8.5
+  }
+}
+```
+
+---
+
+## Delete Rating
+
+Remove a rating from a movie or TV show.
+
+<CodeGroup>
+```bash DELETE /api/{media_type}/{media_id}/rating
+curl -X DELETE https://your-domain.com/api/movie/550/rating
+```
+</CodeGroup>
+
+### Path Parameters
+
+<ParamField path="media_type" type="string" required>
+  The type of media. Options:
+  - `movie` - Movie
+  - `tv` - TV show
+</ParamField>
+
+<ParamField path="media_id" type="integer" required>
+  The ID of the movie or TV show
+</ParamField>
+
+### Response
+
+<ResponseField name="rated" type="null" required>
+  Null value indicating the rating was removed
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "rated": null
+}
+```
+
+---
+
+## Usage Examples
+
+### Get User Favorites
+
+```javascript
+// Get account info first
+const accountResponse = await fetch('/api/account');
+const { id } = await accountResponse.json();
+
+// Get favorite movies
+const favoritesResponse = await fetch(
+  `/api/account/${id}/favorites/movies?page=1&sort_by=created_at.desc`
+);
+const favorites = await favoritesResponse.json();
+```
+
+### Add to Watchlist
+
+```javascript
+const accountResponse = await fetch('/api/account');
+const { id } = await accountResponse.json();
+
+await fetch(`/api/account/${id}/watchlist`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    media_type: 'movie',
+    media_id: 550,
+    watchlist: true
+  })
+});
+```
+
+### Rate a Movie
+
+```javascript
+await fetch('/api/movie/550/rating', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ rating: 9.0 })
+});
+```
+
+---
+
+## Error Responses
+
+### Not Authenticated (401)
+
+```json
+{
+  "message": "You are not authenticated"
+}
+```
+
+### Rate Limit Exceeded (429)
+
+```json
+"Rate Limit Exceeded"
+```
+
+### Not Found (404)
+
+```json
+{
+  "message": "Not found"
+}
+```
+
+### Method Not Allowed (405)
+
+```json
+{
+  "message": "Method Not Allowed"
+}
+```

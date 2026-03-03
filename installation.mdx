@@ -1,0 +1,493 @@
+---
+title: Installation
+description: Complete installation guide for Popcorn Vision with detailed prerequisites, configuration, and troubleshooting.
+---
+
+## Overview
+
+This guide provides comprehensive instructions for installing and configuring Popcorn Vision on your local development environment. By the end, you'll have a fully functional movie and TV show discovery platform.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    **Version 18.17 or higher**
+    
+    Check your version:
+    ```bash
+    node --version
+    ```
+    
+    Download from [nodejs.org](https://nodejs.org/)
+  </Card>
+  
+  <Card title="pnpm" icon="package">
+    **Version 9.15.5 (recommended)**
+    
+    Check your version:
+    ```bash
+    pnpm --version
+    ```
+    
+    Install globally:
+    ```bash
+    npm install -g pnpm@9.15.5
+    ```
+  </Card>
+  
+  <Card title="Git" icon="git">
+    **Latest stable version**
+    
+    Check your version:
+    ```bash
+    git --version
+    ```
+    
+    Download from [git-scm.com](https://git-scm.com/)
+  </Card>
+  
+  <Card title="TMDB Account" icon="film">
+    **Free API access**
+    
+    Create an account at [themoviedb.org](https://www.themoviedb.org/) and request API credentials
+  </Card>
+</CardGroup>
+
+## Step-by-Step Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone Popcorn Vision from GitHub:
+
+    ```bash
+    git clone https://github.com/fachryafrz/popcorn-vision.git
+    cd popcorn-vision
+    ```
+
+    ### Fork for Development
+
+    If you plan to contribute or customize:
+
+    1. Fork the repository on GitHub
+    2. Clone your fork:
+       ```bash
+       git clone https://github.com/YOUR_USERNAME/popcorn-vision.git
+       cd popcorn-vision
+       ```
+    3. Add upstream remote:
+       ```bash
+       git remote add upstream https://github.com/fachryafrz/popcorn-vision.git
+       ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required packages using your preferred package manager:
+
+    <CodeGroup>
+      ```bash pnpm (Recommended)
+      pnpm install
+      ```
+
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+    </CodeGroup>
+
+    <Note>
+      **Why pnpm?** The project is configured with `pnpm@9.15.5` as specified in `package.json`. It's faster and more efficient than npm or yarn, but all three package managers are supported.
+    </Note>
+
+    ### Key Dependencies
+
+    Popcorn Vision uses these major packages:
+
+    ```json package.json
+    {
+      "dependencies": {
+        "next": "14.2.35",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "axios": "^1.12.0",
+        "tailwindcss": "^3.4.17",
+        "daisyui": "^3.9.4",
+        "@mui/material": "^5.16.14",
+        "zustand": "^4.5.6",
+        "framer-motion": "^11.18.2"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create your environment configuration file:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    ### Required Configuration
+
+    Open `.env` and configure the following:
+
+    ```bash .env
+    # TMDB API Configuration (REQUIRED)
+    API_URL="https://api.themoviedb.org/3"
+    API_KEY="your_api_key_here"
+    API_READ="your_read_access_token_here"
+
+    # Image CDN URLs (pre-configured, no changes needed)
+    NEXT_PUBLIC_API_IMAGE_45="https://image.tmdb.org/t/p/w45"
+    NEXT_PUBLIC_API_IMAGE_92="https://image.tmdb.org/t/p/w92"
+    NEXT_PUBLIC_API_IMAGE_154="https://image.tmdb.org/t/p/w154"
+    NEXT_PUBLIC_API_IMAGE_185="https://image.tmdb.org/t/p/w185"
+    NEXT_PUBLIC_API_IMAGE_300="https://image.tmdb.org/t/p/w300"
+    NEXT_PUBLIC_API_IMAGE_342="https://image.tmdb.org/t/p/w342"
+    NEXT_PUBLIC_API_IMAGE_500="https://image.tmdb.org/t/p/w500"
+    NEXT_PUBLIC_API_IMAGE_632="https://image.tmdb.org/t/p/w632"
+    NEXT_PUBLIC_API_IMAGE_780="https://image.tmdb.org/t/p/w780"
+    NEXT_PUBLIC_API_IMAGE_1280="https://image.tmdb.org/t/p/w1280"
+    NEXT_PUBLIC_API_IMAGE_ORIGINAL="https://image.tmdb.org/t/p/original"
+
+    # Google Analytics (optional)
+    GA_MEASUREMENT_ID=""
+    ```
+
+    ### Getting TMDB API Credentials
+
+    <Accordion title="Step-by-step: Get your TMDB API keys" icon="key">
+      1. **Create an Account**
+         - Visit [themoviedb.org](https://www.themoviedb.org/)
+         - Click "Join TMDB" to create a free account
+         - Verify your email address
+
+      2. **Request API Access**
+         - Log in and go to Settings → API
+         - Click "Request an API Key"
+         - Choose "Developer" option
+
+      3. **Fill Out the Application**
+         - **Type of Use**: Website or Personal
+         - **Application Name**: Popcorn Vision (Local Development)
+         - **Application URL**: http://localhost:3000
+         - **Application Summary**: Personal movie discovery platform
+         - Accept the terms and submit
+
+      4. **Copy Your Credentials**
+         - **API Key (v3 auth)**: Copy to `API_KEY` in `.env`
+         - **API Read Access Token (v4 auth)**: Copy to `API_READ` in `.env`
+
+      5. **Verify Your Setup**
+         ```bash
+         # Test your API key
+         curl "https://api.themoviedb.org/3/movie/550?api_key=YOUR_API_KEY"
+         ```
+    </Accordion>
+
+    <Warning>
+      **Security Notice**: Never commit your `.env` file to version control. It's already included in `.gitignore` to protect your API credentials.
+    </Warning>
+
+    ### Understanding the Configuration
+
+    The axios client is configured to use these environment variables:
+
+    ```javascript src/lib/axios.js
+    import Axios from "axios";
+
+    export const axios = Axios.create({
+      baseURL: process.env.API_URL,              // TMDB API base URL
+      params: { api_key: process.env.API_KEY },  // Auto-append API key
+      adapter: "fetch",                          // Use native fetch
+      fetchOptions: {
+        next: { revalidate: 3600 },              // Cache responses for 1 hour
+      },
+    });
+    ```
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the Next.js development server:
+
+    <CodeGroup>
+      ```bash pnpm (Recommended)
+      pnpm dev
+      ```
+
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+    </CodeGroup>
+
+    ### Expected Output
+
+    ```bash
+    ▲ Next.js 14.2.35
+    - Local:        http://localhost:3000
+    - Network:      http://192.168.1.100:3000
+    - Environments: .env
+
+    ✓ Ready in 2.5s
+    ✓ Compiled in 1.2s
+    ```
+
+    <Tip>
+      The server will automatically reload when you make changes to the code. This is powered by Next.js Fast Refresh.
+    </Tip>
+  </Step>
+
+  <Step title="Verify Installation">
+    Open your browser and navigate to:
+
+    ```
+    http://localhost:3000
+    ```
+
+    ### What You Should See
+
+    <Accordion title="Homepage Features" icon="house">
+      - **Hero Slider**: Carousel of trending movies/TV shows with backdrop images
+      - **Now Playing**: Currently available movies in theaters
+      - **Upcoming**: Future releases in the next 3 months
+      - **Top Rated**: Highest-rated content by vote count
+      - **Trending**: Popular content this week
+      - **Company Sections**: Content from major studios
+      - **Genre Sections**: Horror, Comedy, Sci-Fi movies
+    </Accordion>
+
+    <Accordion title="Navigation Options" icon="bars">
+      - **Movies**: Browse all movies
+      - **TV Shows**: Explore TV series
+      - **Search**: Advanced search with filters
+      - **Login**: Authenticate with TMDB account
+    </Accordion>
+
+    ### Test the API Connection
+
+    Check the browser console (F12) for any errors. A successful setup will show:
+
+    ```
+    ✓ Fetched trending movies
+    ✓ Fetched now playing movies
+    ✓ Fetched upcoming movies
+    ```
+  </Step>
+</Steps>
+
+## Build for Production
+
+When you're ready to deploy:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm build
+  pnpm start
+  ```
+
+  ```bash npm
+  npm run build
+  npm run start
+  ```
+
+  ```bash yarn
+  yarn build
+  yarn start
+  ```
+</CodeGroup>
+
+### Production Configuration
+
+The site configuration automatically adjusts for production:
+
+```javascript src/config/site.js
+export const siteConfig = {
+  name: "Popcorn Vision",
+  description: "The ultimate platform for movie and TV show enthusiasts...",
+  url:
+    process.env.NODE_ENV === "production"
+      ? "https://popcorn.fachryafrz.com"
+      : "http://localhost:3000",
+};
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 3000 already in use" icon="circle-exclamation">
+    **Error**: `Port 3000 is already in use`
+
+    **Solution**: Either kill the process using port 3000 or specify a different port:
+
+    ```bash
+    # Use a different port
+    PORT=3001 pnpm dev
+    ```
+
+    **Find and kill the process**:
+    ```bash
+    # macOS/Linux
+    lsof -ti:3000 | xargs kill -9
+
+    # Windows
+    netstat -ano | findstr :3000
+    taskkill /PID <PID> /F
+    ```
+  </Accordion>
+
+  <Accordion title="API requests return 401 Unauthorized" icon="lock">
+    **Error**: `Invalid API key: You must be granted a valid key.`
+
+    **Causes**:
+    - API key is incorrect or missing in `.env`
+    - `.env` file wasn't copied from `.env.example`
+    - Server wasn't restarted after changing `.env`
+
+    **Solution**:
+    1. Verify your API key at [TMDB Settings](https://www.themoviedb.org/settings/api)
+    2. Ensure `.env` exists and contains correct credentials
+    3. Restart the development server:
+       ```bash
+       # Stop the server (Ctrl+C) then restart
+       pnpm dev
+       ```
+  </Accordion>
+
+  <Accordion title="Images not loading" icon="image">
+    **Error**: Broken image placeholders or 404 errors
+
+    **Causes**:
+    - Image URLs in `.env` are incorrect
+    - TMDB image CDN is unreachable
+    - Content doesn't have poster/backdrop images
+
+    **Solution**:
+    1. Verify image URLs match `.env.example` exactly
+    2. Test direct image access:
+       ```
+       https://image.tmdb.org/t/p/w500/[image_path]
+       ```
+    3. Check browser console for CORS or network errors
+  </Accordion>
+
+  <Accordion title="pnpm: command not found" icon="terminal">
+    **Error**: `bash: pnpm: command not found`
+
+    **Solution**: Install pnpm globally:
+
+    <CodeGroup>
+      ```bash npm
+      npm install -g pnpm@9.15.5
+      ```
+
+      ```bash Homebrew (macOS)
+      brew install pnpm
+      ```
+
+      ```bash Alternative
+      # Use npx without installing
+      npx pnpm@9.15.5 install
+      npx pnpm@9.15.5 dev
+      ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion title="Module not found errors" icon="puzzle-piece">
+    **Error**: `Module not found: Can't resolve '@/components/...'`
+
+    **Causes**:
+    - Dependencies weren't installed properly
+    - Node modules are corrupted
+    - Path aliases aren't configured
+
+    **Solution**:
+    ```bash
+    # Clear cache and reinstall
+    rm -rf node_modules pnpm-lock.yaml
+    pnpm install
+
+    # Or with npm
+    rm -rf node_modules package-lock.json
+    npm install
+    ```
+
+    The path aliases are configured in `jsconfig.json`:
+    ```json
+    {
+      "compilerOptions": {
+        "paths": {
+          "@/*": ["./src/*"]
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Rate limiting errors" icon="gauge-high">
+    **Error**: `429 Too Many Requests`
+
+    **Cause**: TMDB API has rate limits (around 40 requests per 10 seconds)
+
+    **Solution**:
+    - Popcorn Vision implements automatic rate limiting with the `limiter` package
+    - Responses are cached for 1 hour to reduce API calls
+    - If you're still hitting limits, consider:
+      - Reducing concurrent requests in development
+      - Implementing additional caching layers
+      - Upgrading to TMDB API v4 for higher limits
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have Popcorn Vision installed:
+
+<CardGroup cols={2}>
+  <Card title="Explore the Codebase" icon="code">
+    - `/src/app`: Next.js App Router pages
+    - `/src/components`: Reusable React components
+    - `/src/lib`: Utility functions and axios client
+    - `/src/zustand`: State management stores
+  </Card>
+  
+  <Card title="Customize Configuration" icon="gear">
+    - `tailwind.config.js`: Styling configuration
+    - `next.config.mjs`: Next.js settings
+    - `/src/config/site.js`: Site metadata
+  </Card>
+  
+  <Card title="Add Features" icon="plus">
+    Study the component structure to add:
+    - New search filters
+    - User profile enhancements
+    - Social sharing features
+  </Card>
+  
+  <Card title="Contribute" icon="code-pull-request">
+    - Read `CODE_OF_CONDUCT.md`
+    - Fork and create a feature branch
+    - Submit pull requests on GitHub
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+<Card title="TMDB API Documentation" icon="book" href="https://developers.themoviedb.org/3">
+  Official API reference for endpoints, parameters, and response formats
+</Card>
+
+<Card title="Next.js Documentation" icon="react" href="https://nextjs.org/docs">
+  Learn about Next.js 14 features, App Router, and server components
+</Card>
+
+<Card title="Live Demo" icon="globe" href="https://popcorn.fachryafrz.com">
+  Experience the production version of Popcorn Vision
+</Card>

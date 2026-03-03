@@ -1,0 +1,396 @@
+---
+title: 'Code Style'
+description: 'Code formatting standards and style guidelines for Popcorn Vision'
+icon: 'palette'
+---
+
+## Code Formatting
+
+Popcorn Vision uses automated code formatting tools to maintain consistent code style across the project.
+
+### Prettier Configuration
+
+The project uses **Prettier** for automatic code formatting with the following configuration:
+
+```json .prettierrc
+{
+  "plugins": ["prettier-plugin-tailwindcss"]
+}
+```
+
+<Info>
+Prettier uses its default settings with the **prettier-plugin-tailwindcss** plugin to automatically sort Tailwind CSS classes.
+</Info>
+
+#### Prettier Default Settings
+
+Since no custom rules are specified, Prettier applies its defaults:
+
+- **Print Width**: 80 characters
+- **Tab Width**: 2 spaces
+- **Tabs**: Spaces (not tabs)
+- **Semicolons**: Always
+- **Quotes**: Double quotes
+- **Trailing Commas**: ES5 (objects, arrays)
+- **Bracket Spacing**: true
+- **Arrow Function Parentheses**: Always
+
+#### Running Prettier
+
+While not included as an npm script, you can format your code manually:
+
+```bash
+# Format all files
+npx prettier --write .
+
+# Format specific files
+npx prettier --write "src/**/*.{js,jsx,ts,tsx}"
+
+# Check formatting without writing
+npx prettier --check .
+```
+
+<Info>
+**Tip:** Configure your code editor to format on save using Prettier. This ensures your code is always properly formatted.
+</Info>
+
+### ESLint Configuration
+
+Popcorn Vision uses **ESLint** with Next.js's recommended configuration:
+
+```json .eslintrc.json
+{
+  "extends": "next/core-web-vitals"
+}
+```
+
+This configuration includes:
+
+- React best practices
+- React Hooks rules
+- Next.js specific optimizations
+- Core Web Vitals warnings
+- Accessibility rules
+
+#### Running ESLint
+
+Check your code for issues:
+
+```bash
+# Run ESLint
+pnpm lint
+
+# Auto-fix issues where possible
+pnpm lint --fix
+```
+
+## File Naming Conventions
+
+Consistent file naming makes the codebase easier to navigate:
+
+### React Components
+
+- **Component files**: PascalCase with `.jsx` or `.js` extension
+  - ✅ `MovieCard.jsx`
+  - ✅ `SearchBar.jsx`
+  - ❌ `movie-card.jsx`
+  - ❌ `search_bar.jsx`
+
+- **Component directories**: PascalCase matching the component name
+  ```
+  components/
+  ├── MovieCard/
+  │   ├── MovieCard.jsx
+  │   └── MovieCard.module.css
+  ```
+
+### Next.js App Router Files
+
+- **Pages**: Use Next.js conventions (`page.js`, `layout.js`, etc.)
+  - `page.js` - Page component
+  - `layout.js` - Layout wrapper
+  - `loading.js` - Loading UI
+  - `error.js` - Error UI
+  - `not-found.js` - 404 UI
+
+- **Route groups**: Use parentheses for organization
+  - `(auth)/login/page.js`
+  - `(films)/movie/[id]/page.js`
+
+### Utilities and Helpers
+
+- **Utility files**: camelCase with `.js` extension
+  - ✅ `formatDate.js`
+  - ✅ `apiHelpers.js`
+  - ❌ `FormatDate.js`
+  - ❌ `api-helpers.js`
+
+### Configuration Files
+
+- Use lowercase with hyphens or dots:
+  - ✅ `next.config.mjs`
+  - ✅ `tailwind.config.js`
+  - ✅ `.eslintrc.json`
+
+## Component Organization
+
+Follow these patterns when creating components:
+
+### Component Structure
+
+```jsx
+// 1. Imports - External libraries first
+import React from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+
+// 2. Imports - Internal utilities and hooks
+import { formatDate } from '@/utils/formatDate';
+import { useUser } from '@/hooks/useUser';
+
+// 3. Imports - Components
+import Button from '@/components/Button';
+import Modal from '@/components/Modal';
+
+// 4. Imports - Styles
+import styles from './MovieCard.module.css';
+
+// 5. Component definition
+export default function MovieCard({ movie, onFavorite }) {
+  // Hooks
+  const [isLoading, setIsLoading] = useState(false);
+  const user = useUser();
+
+  // Event handlers
+  const handleClick = () => {
+    // Handler logic
+  };
+
+  // Effects
+  useEffect(() => {
+    // Effect logic
+  }, []);
+
+  // Render
+  return (
+    <div className="card">
+      {/* Component JSX */}
+    </div>
+  );
+}
+```
+
+### Component Best Practices
+
+1. **One component per file** - Each component should be in its own file
+2. **Default export** - Use default exports for page components
+3. **Named exports** - Use named exports for utility components
+4. **PropTypes or TypeScript** - Document expected props (consider adding TypeScript)
+5. **Destructure props** - Destructure props in function parameters
+
+## Import Ordering
+
+Organize imports in the following order:
+
+<Steps>
+  <Step title="External Dependencies">
+    React, Next.js, and third-party libraries
+
+    ```jsx
+    import React from 'react';
+    import { useState } from 'react';
+    import Link from 'next/link';
+    import axios from 'axios';
+    ```
+  </Step>
+
+  <Step title="Internal Utilities">
+    Helper functions, hooks, and configurations
+
+    ```jsx
+    import { formatDate } from '@/utils/formatDate';
+    import { useUser } from '@/hooks/useUser';
+    import { API_URL } from '@/config/api';
+    ```
+  </Step>
+
+  <Step title="Components">
+    Other React components
+
+    ```jsx
+    import Button from '@/components/Button';
+    import Modal from '@/components/Modals/Modal';
+    ```
+  </Step>
+
+  <Step title="Styles">
+    CSS modules and style imports
+
+    ```jsx
+    import styles from './Component.module.css';
+    import './global.css';
+    ```
+  </Step>
+</Steps>
+
+<Info>
+Use absolute imports with the `@/` alias (configured in `jsconfig.json`) instead of relative paths when possible.
+</Info>
+
+## Tailwind CSS Guidelines
+
+### Class Organization
+
+The **prettier-plugin-tailwindcss** automatically sorts classes in the recommended order:
+
+```jsx
+// Classes are automatically sorted
+<div className="flex items-center justify-between rounded-lg bg-base-100 p-4 shadow-lg hover:bg-base-200">
+  {/* Content */}
+</div>
+```
+
+### Custom Utilities
+
+When using custom Tailwind utilities defined in `tailwind.config.js`:
+
+```jsx
+// Custom colors
+<div className="bg-base-dark-gray text-primary-yellow">
+
+// Custom aspect ratio
+<img className="aspect-poster" />
+
+// Custom variants
+<button className="hocus:bg-primary-blue">
+```
+
+### DaisyUI Components
+
+Use DaisyUI component classes when applicable:
+
+```jsx
+<button className="btn btn-primary">
+<div className="card card-compact">
+<div className="modal modal-open">
+```
+
+## JavaScript/React Best Practices
+
+### Use Modern JavaScript
+
+- **Arrow functions** for functional components
+- **Destructuring** for props and state
+- **Template literals** for string concatenation
+- **Optional chaining** (`?.`) for safe property access
+- **Nullish coalescing** (`??`) for default values
+
+```jsx
+// ✅ Good
+const MovieCard = ({ movie }) => {
+  const title = movie?.title ?? 'Unknown Title';
+  return <div>{title}</div>;
+};
+
+// ❌ Avoid
+function MovieCard(props) {
+  var title = props.movie && props.movie.title ? props.movie.title : 'Unknown Title';
+  return <div>{title}</div>;
+}
+```
+
+### Component Patterns
+
+- **Functional components** - Use function components with hooks
+- **Custom hooks** - Extract reusable logic into custom hooks
+- **Composition** - Prefer composition over prop drilling
+- **Memoization** - Use `useMemo` and `useCallback` for expensive operations
+
+### Naming Conventions
+
+<CodeGroup>
+```jsx Components
+// PascalCase for components
+const MovieCard = () => { };
+const SearchBar = () => { };
+```
+
+```jsx Functions
+// camelCase for functions
+const fetchMovieDetails = () => { };
+const handleSubmit = () => { };
+```
+
+```jsx Constants
+// UPPER_SNAKE_CASE for constants
+const API_BASE_URL = 'https://api.example.com';
+const MAX_RESULTS = 20;
+```
+
+```jsx Hooks
+// camelCase starting with 'use'
+const useMovieData = () => { };
+const useAuthentication = () => { };
+```
+</CodeGroup>
+
+## Comments and Documentation
+
+### When to Comment
+
+- **Complex logic** - Explain why, not what
+- **API integrations** - Document expected responses
+- **Workarounds** - Explain temporary solutions
+- **TODOs** - Mark items for future improvement
+
+```jsx
+// ✅ Good comment - explains why
+// Using a Set to ensure unique IDs and improve lookup performance
+const uniqueIds = new Set(ids);
+
+// ❌ Unnecessary comment - obvious from code
+// Create a new Set
+const uniqueIds = new Set(ids);
+```
+
+### JSDoc for Complex Functions
+
+Consider adding JSDoc comments for complex utility functions:
+
+```jsx
+/**
+ * Formats a movie runtime in minutes to hours and minutes
+ * @param {number} minutes - Runtime in minutes
+ * @returns {string} Formatted runtime (e.g., "2h 30m")
+ */
+function formatRuntime(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h ${mins}m`;
+}
+```
+
+## EditorConfig
+
+Consider adding an `.editorconfig` file for consistent editor settings:
+
+```ini .editorconfig
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+```
+
+## Next Steps
+
+- Review the [Development Guide](/contributing/development-guide) for setup instructions
+- Read the [Contributing Guidelines](/contributing/guidelines) for the PR process
+- Set up your editor with Prettier and ESLint plugins

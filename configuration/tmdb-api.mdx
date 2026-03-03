@@ -1,0 +1,362 @@
+---
+title: 'TMDB API Setup'
+description: 'Get your TMDB API credentials and configure authentication for Popcorn Vision'
+icon: 'key'
+---
+
+## Overview
+
+Popcorn Vision uses The Movie Database (TMDB) API to fetch movie and TV show information. You'll need to create a free TMDB account and generate API credentials before running the application.
+
+<Info>
+  TMDB API is completely free for non-commercial use. Commercial usage requires approval from TMDB.
+</Info>
+
+## Prerequisites
+
+- A valid email address
+- Agreement to TMDB's Terms of Service and API Terms of Use
+- A brief description of how you'll use the API (e.g., "Personal movie tracking application")
+
+## Getting Your API Credentials
+
+<Steps>
+  <Step title="Create a TMDB Account">
+    Navigate to [The Movie Database](https://www.themoviedb.org/) and click **Sign Up** in the top right corner.
+    
+    Fill in your details:
+    - Username
+    - Password
+    - Email address
+    
+    Verify your email address by clicking the confirmation link sent to your inbox.
+  </Step>
+  
+  <Step title="Navigate to API Settings">
+    Once logged in:
+    1. Click your profile icon in the top right
+    2. Select **Settings** from the dropdown
+    3. Click **API** in the left sidebar
+    
+    Or navigate directly to: [TMDB API Settings](https://www.themoviedb.org/settings/api)
+  </Step>
+  
+  <Step title="Request an API Key">
+    On the API page, you'll see a section to request an API key.
+    
+    1. Click **click here** link under "Request an API Key"
+    2. Choose **Developer** (for non-commercial use)
+    3. Accept the Terms of Use
+  </Step>
+  
+  <Step title="Fill Out the Application Form">
+    Provide the required information:
+    
+    **Application Name:** Popcorn Vision (or your custom name)
+    
+    **Application URL:** Your deployment URL or `http://localhost:3000` for development
+    
+    **Application Summary:** A brief description, such as:
+    ```
+    Personal movie and TV show tracking application. Allows users to 
+    discover content, create watchlists, and rate movies/shows.
+    ```
+    
+    Click **Submit** when complete.
+  </Step>
+  
+  <Step title="Copy Your API Credentials">
+    You'll immediately see your API credentials. Copy both:
+    
+    <ParamField path="API Key (v3 auth)" type="string">
+      Your main API key - a 32-character hexadecimal string.
+      
+      **Example format:** `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`
+      
+      Copy this value to `API_KEY` in your `.env.local` file.
+    </ParamField>
+    
+    <ParamField path="API Read Access Token (v4 auth)" type="string">
+      A longer JWT token used for some v4 API endpoints.
+      
+      **Example format:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (much longer)
+      
+      Copy this value to `API_READ` in your `.env.local` file.
+    </ParamField>
+    
+    <Warning>
+      Keep these credentials private! Never share them publicly or commit them to version control.
+    </Warning>
+  </Step>
+</Steps>
+
+## Configuring Popcorn Vision
+
+After obtaining your credentials, add them to your environment configuration:
+
+<CodeGroup>
+```bash .env.local
+# TMDB API Configuration
+API_URL="https://api.themoviedb.org/3"
+API_KEY="your_api_key_here"
+API_READ="your_read_access_token_here"
+```
+
+```bash Example
+API_URL="https://api.themoviedb.org/3"
+API_KEY="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+API_READ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+```
+</CodeGroup>
+
+## Understanding API Versions
+
+TMDB offers two API versions, and Popcorn Vision uses both:
+
+<CardGroup cols={2}>
+  <Card title="API v3 (API Key)" icon="key">
+    The traditional REST API using an API key for authentication.
+    
+    **Used for:**
+    - Fetching movie/TV data
+    - Search functionality
+    - Discover endpoints
+    - Most read operations
+    
+    **Authentication:** Query parameter `api_key=YOUR_KEY`
+  </Card>
+  
+  <Card title="API v4 (Bearer Token)" icon="shield-check">
+    Newer API version using OAuth-style bearer token authentication.
+    
+    **Used for:**
+    - User account operations
+    - Lists management
+    - Ratings and favorites
+    - Write operations
+    
+    **Authentication:** Header `Authorization: Bearer YOUR_TOKEN`
+  </Card>
+</CardGroup>
+
+<Note>
+  Popcorn Vision primarily uses v3 API endpoints. The v4 Read Access Token is included for future compatibility and advanced features.
+</Note>
+
+## API Usage in Popcorn Vision
+
+Here's how your API credentials are used throughout the application:
+
+### Server-Side API Client
+
+The main API client is configured in `src/lib/axios.js`:
+
+```javascript
+import Axios from "axios";
+
+export const axios = Axios.create({
+  baseURL: process.env.API_URL,
+  params: { api_key: process.env.API_KEY },
+  adapter: "fetch",
+  fetchOptions: {
+    next: { revalidate: 3600 }, // Cache for 1 hour
+  },
+});
+```
+
+This client automatically:
+- Adds your API key to all requests
+- Caches responses for 1 hour to reduce API calls
+- Uses Next.js fetch adapter for optimal performance
+
+### API Routes
+
+Popcorn Vision uses Next.js API routes to proxy TMDB requests:
+
+- `/api/search/query` - Search for movies/TV shows
+- `/api/search/filter` - Filter and discover content
+- `/api/authentication/*` - User authentication flows
+- `/api/account/*` - User account management
+- `/api/[[...segments]]` - Catch-all proxy for other TMDB endpoints
+
+<Info>
+  API keys are kept secure on the server. They're never exposed to client-side JavaScript.
+</Info>
+
+## Rate Limits
+
+TMDB enforces rate limits to ensure fair usage:
+
+<ParamField path="Rate Limit" type="number">
+  **40 requests per 10 seconds** per IP address
+  
+  If you exceed this limit, you'll receive a `429 Too Many Requests` response.
+</ParamField>
+
+### Avoiding Rate Limits
+
+Popcorn Vision includes several strategies to stay within limits:
+
+1. **Response Caching:** API responses are cached for 1 hour using Next.js cache
+2. **Request Batching:** Multiple data points are fetched in single requests using `append_to_response`
+3. **Rate Limiting Middleware:** Built-in rate limiting using the `limiter` package
+
+<Tip>
+  For high-traffic deployments, consider implementing Redis caching to further reduce API calls.
+</Tip>
+
+## Testing Your API Connection
+
+Verify your TMDB API credentials are working correctly:
+
+<Steps>
+  <Step title="Start the Development Server">
+    ```bash
+    npm run dev
+    # or
+    pnpm dev
+    ```
+  </Step>
+  
+  <Step title="Check the Application">
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
+    
+    If configured correctly, you should see:
+    - Movie posters and backdrops loading
+    - Trending movies on the homepage
+    - Search functionality working
+  </Step>
+  
+  <Step title="Test an API Endpoint Directly">
+    You can test your API key directly using curl:
+    
+    ```bash
+    curl "https://api.themoviedb.org/3/movie/popular?api_key=YOUR_API_KEY_HERE"
+    ```
+    
+    A successful response will return JSON with popular movies:
+    
+    ```json
+    {
+      "page": 1,
+      "results": [
+        {
+          "id": 123456,
+          "title": "Example Movie",
+          "overview": "Movie description...",
+          // ... more fields
+        }
+      ]
+    }
+    ```
+  </Step>
+  
+  <Step title="Check the Browser Console">
+    Open your browser's Developer Tools (F12) and check the Console and Network tabs for any errors.
+    
+    Common error messages:
+    - `401 Unauthorized` - Invalid API key
+    - `429 Too Many Requests` - Rate limit exceeded
+    - `404 Not Found` - Incorrect API URL
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized Error">
+    **Problem:** API requests return 401 status code.
+    
+    **Causes:**
+    - Incorrect API key
+    - API key not activated yet
+    - Extra spaces or quotes in `.env.local`
+    
+    **Solutions:**
+    1. Copy your API key fresh from [TMDB Settings](https://www.themoviedb.org/settings/api)
+    2. Remove any quotes or spaces around the key in `.env.local`
+    3. Wait a few minutes if you just created your account
+    4. Restart your dev server after updating `.env.local`
+  </Accordion>
+  
+  <Accordion title="429 Rate Limit Error">
+    **Problem:** Too Many Requests error from TMDB.
+    
+    **Cause:** You've exceeded 40 requests per 10 seconds.
+    
+    **Solutions:**
+    1. Implement caching for API responses
+    2. Reduce the number of API calls on page load
+    3. Wait 10 seconds and try again
+    4. Check for infinite loops in your code making repeated API calls
+  </Accordion>
+  
+  <Accordion title="Images Not Loading">
+    **Problem:** Movie posters and backdrops are broken.
+    
+    **Cause:** Image CDN URLs not configured.
+    
+    **Solution:**
+    Ensure all `NEXT_PUBLIC_API_IMAGE_*` variables are set in `.env.local`. Copy them from `.env.example`:
+    
+    ```bash
+    NEXT_PUBLIC_API_IMAGE_500="https://image.tmdb.org/t/p/w500"
+    NEXT_PUBLIC_API_IMAGE_1280="https://image.tmdb.org/t/p/w1280"
+    # ... etc
+    ```
+  </Accordion>
+  
+  <Accordion title="API Key Revoked or Suspended">
+    **Problem:** Your API key stops working.
+    
+    **Causes:**
+    - Violation of TMDB Terms of Service
+    - Commercial use without approval
+    - Excessive API usage
+    
+    **Solution:**
+    1. Check your email for notices from TMDB
+    2. Review [TMDB API Terms](https://www.themoviedb.org/settings/api)
+    3. Contact TMDB support if you believe it's an error
+    4. Request a new API key if necessary
+  </Accordion>
+  
+  <Accordion title="Network or CORS Errors">
+    **Problem:** CORS errors in browser console.
+    
+    **Cause:** Direct API calls from client-side code.
+    
+    **Solution:**
+    Always use Popcorn Vision's API routes (e.g., `/api/search/query`) instead of calling TMDB directly from the browser. The Next.js API routes act as a secure proxy.
+  </Accordion>
+</AccordionGroup>
+
+## API Documentation
+
+For advanced usage and custom integrations, refer to the official TMDB API documentation:
+
+<CardGroup cols={2}>
+  <Card title="TMDB API v3 Docs" icon="book" href="https://developers.themoviedb.org/3">
+    Complete API v3 reference with all endpoints and parameters
+  </Card>
+  <Card title="TMDB API v4 Docs" icon="book-open" href="https://developers.themoviedb.org/4">
+    API v4 documentation for advanced authentication and features
+  </Card>
+  <Card title="API Support" icon="life-ring" href="https://www.themoviedb.org/talk/category/5047958519c29526b50017d6">
+    TMDB community forums for API support and questions
+  </Card>
+  <Card title="Rate Limits Guide" icon="gauge-high" href="https://developers.themoviedb.org/3/getting-started/request-rate-limiting">
+    Detailed information about TMDB rate limiting policies
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/configuration/environment">
+    Configure all environment variables for Popcorn Vision
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/configuration/deployment">
+    Deploy your configured instance to production
+  </Card>
+</CardGroup>

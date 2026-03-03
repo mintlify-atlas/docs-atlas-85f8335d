@@ -1,0 +1,322 @@
+---
+title: User Account
+description: Create and manage your Popcorn Vision account powered by TMDB authentication
+icon: user
+---
+
+Popcorn Vision uses TMDB (The Movie Database) for authentication, giving you access to powerful features like watchlists, favorites, and ratings that sync with TMDB.
+
+## Why TMDB Authentication?
+
+Popcorn Vision leverages TMDB's authentication system to provide:
+
+<CardGroup cols={2}>
+  <Card title="Unified Account" icon="link">
+    One account works across TMDB and Popcorn Vision
+  </Card>
+  <Card title="Data Sync" icon="arrows-rotate">
+    Your watchlists, favorites, and ratings sync between platforms
+  </Card>
+  <Card title="Trusted Security" icon="shield">
+    TMDB's secure authentication infrastructure
+  </Card>
+  <Card title="Community Integration" icon="users">
+    Your ratings contribute to TMDB's community database
+  </Card>
+</CardGroup>
+
+## Creating a TMDB Account
+
+If you don't have a TMDB account yet, you'll need to create one:
+
+<Steps>
+  <Step title="Click Login">
+    Click the **Login** button in the Popcorn Vision navigation bar
+  </Step>
+  <Step title="Click 'Don't have an account?'">
+    On the login page, click the **"Doesn't have an account?"** link at the bottom
+  </Step>
+  <Step title="Complete TMDB Signup">
+    You'll be redirected to TMDB's signup page. Fill in:
+    - Username (must be unique)
+    - Password (minimum 4 characters)
+    - Email address
+    - Accept terms and conditions
+  </Step>
+  <Step title="Verify Email">
+    Check your email for a verification link from TMDB and click it to activate your account
+  </Step>
+  <Step title="Return to Popcorn Vision">
+    Come back to Popcorn Vision and log in with your new credentials
+  </Step>
+</Steps>
+
+<Info>
+  Your TMDB account is completely free and gives you access to features across all TMDB-powered applications.
+</Info>
+
+## Logging In
+
+Once you have a TMDB account, logging into Popcorn Vision is simple:
+
+<Steps>
+  <Step title="Access Login Page">
+    Click the **Login** button in the navigation bar or visit `/login`
+  </Step>
+  <Step title="Enter Credentials">
+    Enter your TMDB username and password
+  </Step>
+  <Step title="Submit">
+    Click the **Login** button to authenticate
+  </Step>
+  <Step title="Automatic Redirect">
+    You'll be automatically redirected to the page you were viewing (or home page)
+  </Step>
+</Steps>
+
+<Warning>
+  If you see an error message like "Invalid username or password", double-check your credentials. Use the "Forgot your password?" link if needed.
+</Warning>
+
+## Authentication Flow
+
+Behind the scenes, Popcorn Vision uses TMDB's secure authentication process:
+
+1. **Request Token**: Popcorn Vision requests a temporary token from TMDB
+2. **Validate Credentials**: Your username and password are validated with the token
+3. **Create Session**: A session ID is created for your authenticated session
+4. **Store Session**: The session is securely stored to keep you logged in
+
+<Note>
+  Your password is never stored by Popcorn Vision. All authentication is handled directly by TMDB's secure API.
+</Note>
+
+## Password Reset
+
+Forgot your password? No problem:
+
+<Steps>
+  <Step title="Click 'Forgot your password?'">
+    On the login page, click the **"Forgot your password?"** link
+  </Step>
+  <Step title="Reset on TMDB">
+    You'll be redirected to TMDB's password reset page
+  </Step>
+  <Step title="Enter Email or Username">
+    Provide your email address or username
+  </Step>
+  <Step title="Check Email">
+    TMDB will send password reset instructions to your email
+  </Step>
+  <Step title="Return to Login">
+    After resetting your password, return to Popcorn Vision and log in
+  </Step>
+</Steps>
+
+## Your Profile
+
+Once logged in, access your profile at `/profile`:
+
+### Profile Information
+
+Your profile displays:
+
+- **Display Name**: Your name (if set) or username
+- **Username**: Your TMDB username
+- **Member Since**: Account creation date
+- **Avatar**: Your TMDB profile picture (if set)
+
+<Tip>
+  To update your profile information or avatar, visit your TMDB account settings. Changes will automatically sync to Popcorn Vision.
+</Tip>
+
+### Activity Overview
+
+Your profile shows three main collections:
+
+<Tabs>
+  <Tab title="Favorites">
+    All movies and TV shows you've marked as favorites
+    
+    - Quick access to your favorite content
+    - Sorted by when you added them (newest first by default)
+    - Filter by movies or TV shows
+  </Tab>
+  <Tab title="Watchlist">
+    Content you want to watch later
+    
+    - Movies and shows you've bookmarked
+    - Organized by date added
+    - Easy management with one-click removal
+  </Tab>
+  <Tab title="Rated">
+    Everything you've rated
+    
+    - All your movie and TV show ratings
+    - Shows your personal rating alongside community rating
+    - Sort by rating, release date, or popularity
+  </Tab>
+</Tabs>
+
+### Sorting Your Collections
+
+Each collection can be sorted using the dropdown in the top-right:
+
+<CardGroup cols={2}>
+  <Card title="Created At" icon="clock">
+    Date added to your collection (default: newest first)
+  </Card>
+  <Card title="Rating" icon="star">
+    Sort by your rating or average rating
+  </Card>
+  <Card title="Popularity" icon="fire">
+    Most to least popular
+  </Card>
+  <Card title="Release Date" icon="calendar">
+    Newest to oldest releases
+  </Card>
+</CardGroup>
+
+**Sort order options:**
+- **Descending**: High to low, newest to oldest (default)
+- **Ascending**: Low to high, oldest to newest
+
+### Filtering Between Movies and TV
+
+Switch between content types using the dropdown:
+
+- **Movies**: Shows only movies in your collections
+- **TV Shows**: Shows only TV shows in your collections
+
+<Info>
+  The filter applies to all three collections (Favorites, Watchlist, Rated) simultaneously.
+</Info>
+
+## Account Privacy
+
+<AccordionGroup>
+  <Accordion title="What data does Popcorn Vision access?">
+    Popcorn Vision only accesses:
+    - Your TMDB username and profile info
+    - Your watchlist items
+    - Your favorite items
+    - Your ratings
+    
+    No personal information like email or password is accessed or stored.
+  </Accordion>
+  
+  <Accordion title="Is my data shared with third parties?">
+    No. Your TMDB account data is only used to provide features within Popcorn Vision. No data is sold or shared with third parties.
+  </Accordion>
+  
+  <Accordion title="Can I delete my data?">
+    Yes. To remove your data:
+    1. Remove items from your watchlist and favorites in Popcorn Vision
+    2. Delete your ratings
+    3. Log out of Popcorn Vision
+    
+    To permanently delete your account, you'll need to delete your TMDB account at TMDB.org.
+  </Accordion>
+  
+  <Accordion title="What happens when I log out?">
+    Logging out removes your session from Popcorn Vision. Your data remains safe in your TMDB account and will be available when you log back in.
+  </Accordion>
+</AccordionGroup>
+
+## Logging Out
+
+To log out of Popcorn Vision:
+
+<Steps>
+  <Step title="Click Your Profile Icon">
+    Click on your profile picture or username in the navigation bar
+  </Step>
+  <Step title="Select Logout">
+    Click the **Logout** button in the dropdown menu
+  </Step>
+  <Step title="Confirm">
+    You'll be logged out and redirected to the home page
+  </Step>
+</Steps>
+
+<Note>
+  Logging out only ends your Popcorn Vision session. Your TMDB account remains active for use on TMDB.org and other TMDB-powered apps.
+</Note>
+
+## Guest Features vs. Logged In
+
+<Tabs>
+  <Tab title="As a Guest">
+    Without logging in, you can:
+    
+    ✅ Browse all movies and TV shows  
+    ✅ Use search and filters  
+    ✅ View detailed information  
+    ✅ Watch trailers  
+    ✅ Read reviews  
+    
+    ❌ Cannot add to watchlist  
+    ❌ Cannot mark favorites  
+    ❌ Cannot rate content  
+    ❌ Cannot save preferences  
+  </Tab>
+  <Tab title="Logged In">
+    With a TMDB account, you get:
+    
+    ✅ Everything guests can do  
+    ✅ **Add to watchlist** - Save for later  
+    ✅ **Mark favorites** - Track your favorites  
+    ✅ **Rate content** - Share your opinions  
+    ✅ **Profile page** - Manage collections  
+    ✅ **Cross-platform sync** - Access everywhere  
+  </Tab>
+</Tabs>
+
+## Troubleshooting Login Issues
+
+<AccordionGroup>
+  <Accordion title="Login button doesn't work">
+    Try these steps:
+    1. Make sure you've entered both username and password
+    2. Check that your credentials are correct
+    3. Verify your TMDB account is activated (check email)
+    4. Clear your browser cache and try again
+    5. Try a different browser
+  </Accordion>
+  
+  <Accordion title="Stuck on loading after login">
+    This usually indicates a network or session issue:
+    1. Wait 30 seconds for the process to complete
+    2. Refresh the page
+    3. Clear cookies and try logging in again
+    4. Check your internet connection
+  </Accordion>
+  
+  <Accordion title="Changes not syncing to TMDB">
+    If your actions in Popcorn Vision aren't appearing on TMDB:
+    1. Log out and log back in to refresh your session
+    2. Check that you're logged into the correct account
+    3. Give it a few minutes - sync can take time
+    4. Verify the action completed successfully (no error messages)
+  </Accordion>
+  
+  <Accordion title="Invalid username or password error">
+    Common solutions:
+    1. Double-check your username (not email)
+    2. Verify password is correct (case-sensitive)
+    3. Make sure your account is activated
+    4. Use the "Forgot password" link if needed
+    5. Check if your TMDB account is still active
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Watchlist & Favorites" icon="bookmark" href="/features/watchlist-favorites">
+    Learn how to save and organize content
+  </Card>
+  <Card title="Rating System" icon="star" href="/features/rating-system">
+    Rate movies and TV shows
+  </Card>
+</CardGroup>

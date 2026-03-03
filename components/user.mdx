@@ -1,0 +1,546 @@
+---
+title: User Components
+description: Authentication, user actions, and profile components
+---
+
+## Overview
+
+User components handle authentication flows, user-specific actions like watchlist and favorites, and profile management. These components integrate with TMDB's authentication system and Zustand for state management.
+
+## Authentication Components
+
+### LoginButton
+
+Simple login button that redirects to the login page with return URL.
+
+#### Implementation
+
+```jsx User/LoginButton.jsx
+import { IonIcon } from "@ionic/react";
+import { personCircleOutline } from "ionicons/icons";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+
+export default function LoginButton() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams().toString();
+
+  return (
+    <Link
+      id="login"
+      href={
+        pathname !== `/login`
+          ? `/login?redirect_to=${pathname}${searchParams ? `?${searchParams}` : ``}`
+          : `/login`
+      }
+      prefetch={false}
+      className="btn btn-circle"
+    >
+      <IonIcon
+        icon={personCircleOutline}
+        style={{ fontSize: 36 }}
+      />
+    </Link>
+  );
+}
+```
+
+<Info>
+  The `redirect_to` parameter ensures users return to their original page after logging in.
+</Info>
+
+---
+
+### LogoutButton
+
+Displays user profile picture or initials with link to profile page.
+
+#### Props
+
+<ParamField path="user" type="object" required>
+  User object with properties:
+  - `username`: User's username
+  - `name`: Display name
+  - `avatar`: Avatar object with `tmdb` and `gravatar` properties
+</ParamField>
+
+#### Implementation
+
+```jsx User/LogoutButton.jsx
+export default function LogoutButton({ user }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isTvPage = pathname.startsWith("/tv");
+  const isProfilePage = pathname.startsWith(`/profile`);
+  
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    const { avatar } = user;
+
+    if (avatar.tmdb.avatar_path) {
+      setProfileImage(
+        `https://www.themoviedb.org/t/p/w64_and_h64_face${avatar.tmdb.avatar_path}`
+      );
+    }
+
+    if (avatar.gravatar) {
+      setProfileImage(`https://gravatar.com/avatar/${avatar.gravatar.hash}`);
+    }
+  }, [user]);
+
+  return (
+    <Link
+      href={{
+        pathname: `/profile`,
+        query: (isProfilePage && searchParams.get("type") === "tv") || isTvPage
+          ? "type=tv"
+          : "",
+      }}
+      className="btn btn-circle"
+    >
+      {!profileImage ? (
+        <div className="avatar placeholder">
+          <div className="w-[36px] rounded-full bg-base-100">
+            <span>{user.username.slice(0, 2)}</span>
+          </div>
+        </div>
+      ) : (
+        <figure className="avatar">
+          <div className="w-[36px] rounded-full">
+            <img src={profileImage} alt={user.name} />
+          </div>
+        </figure>
+      )}
+    </Link>
+  );
+}
+```
+
+<Tabs>
+  <Tab title="TMDB Avatar">
+    Prioritizes TMDB avatar if available:
+    ```jsx
+    `https://www.themoviedb.org/t/p/w64_and_h64_face${avatar.tmdb.avatar_path}`
+    ```
+  </Tab>
+  
+  <Tab title="Gravatar Fallback">
+    Falls back to Gravatar:
+    ```jsx
+    `https://gravatar.com/avatar/${avatar.gravatar.hash}`
+    ```
+  </Tab>
+  
+  <Tab title="Initials Fallback">
+    Shows first two letters of username if no image:
+    ```jsx
+    <span>{user.username.slice(0, 2)}</span>
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## User Actions
+
+### WatchlistButton
+
+Toggle button for adding/removing films from user's watchlist.
+
+#### Props
+
+<ParamField path="swrKey" type="string" required>
+  SWR cache key to invalidate on change
+</ParamField>
+
+<ParamField path="film" type="object" required>
+  Film object with `id` property
+</ParamField>
+
+<ParamField path="watchlist" type="boolean" required>
+  Current watchlist status
+</ParamField>
+
+<ParamField path="withText" type="boolean" default={true}>
+  Whether to show "Watchlist" text label
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes
+</ParamField>
+
+#### Implementation
+
+```jsx User/Actions/WatchlistButton.jsx
+import { userStore } from "@/zustand/userStore";
+import axios from "axios";
+import { useSWRConfig } from "swr";
+
+export default function WatchlistButton({
+  swrKey,
+  film,
+  watchlist,
+  withText = true,
+  className,
+}) {
+  const { user } = userStore();
+  const { mutate } = useSWRConfig();
+  const pathname = usePathname();
+  const isTvPage = pathname.startsWith("/tv");
+
+  const [isAdded, setIsAdded] = useState(watchlist);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleWatchlist = async (value) => {
+    try {
+      setIsLoading(true);
+
+      const { data: { watchlist } } = await axios.post(
+        `/api/account/${user.id}/watchlist`,
+        {
+          media_type: !isTvPage ? "movie" : "tv",
+          media_id: film.id,
+          watchlist: value,
+        }
+      );
+      
+      setIsLoading(false);
+      setIsAdded(watchlist);
+      mutate(swrKey); // Invalidate cache
+    } catch (error) {
+      console.error("Error adding to watchlist:", error);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={() => {
+        if (user) {
+          handleWatchlist(!isAdded);
+        } else {
+          document.getElementById("loginAlert").showModal();
+        }
+      }}
+      className="btn btn-ghost"
+    >
+      {isLoading ? (
+        <span className="loading loading-spinner"></span>
+      ) : (
+        <IonIcon icon={!isAdded ? bookmarkOutline : bookmark} />
+      )}
+      {withText && <span>Watchlist</span>}
+    </button>
+  );
+}
+```
+
+<Accordion title="SWR Cache Invalidation">
+  After updating watchlist status, the component invalidates the SWR cache to refresh data:
+  
+  ```jsx
+  const { mutate } = useSWRConfig();
+  
+  // After API call succeeds:
+  mutate(swrKey);
+  ```
+  
+  This ensures the UI updates across all components using the same data.
+</Accordion>
+
+<Accordion title="Guest User Handling">
+  If no user is logged in, shows a login modal instead:
+  
+  ```jsx
+  onClick={() => {
+    if (user) {
+      handleWatchlist(!isAdded);
+    } else {
+      document.getElementById("loginAlert").showModal();
+    }
+  }}
+  ```
+</Accordion>
+
+---
+
+### FavoriteButton
+
+Similar to WatchlistButton but for marking favorites.
+
+**API Endpoint**: `/api/account/${user.id}/favorite`
+
+**Request Body**:
+```json
+{
+  "media_type": "movie" | "tv",
+  "media_id": 550,
+  "favorite": true | false
+}
+```
+
+---
+
+### UserRating
+
+Component for users to rate films on a 1-10 scale.
+
+**API Endpoint**: `/api/${mediaType}/${filmId}/rating`
+
+**Request Body**:
+```json
+{
+  "value": 8.5
+}
+```
+
+---
+
+## User State Management
+
+Popcorn Vision uses Zustand for global user state.
+
+### userStore
+
+```jsx zustand/userStore.js
+import { create } from "zustand";
+
+export const userStore = create((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+}));
+```
+
+### Usage
+
+```jsx
+import { userStore } from "@/zustand/userStore";
+
+export default function MyComponent() {
+  const { user, setUser } = userStore();
+  
+  // Check if user is logged in
+  if (!user) {
+    return <LoginButton />;
+  }
+  
+  return (
+    <div>
+      <h1>Welcome, {user.name}!</h1>
+      <LogoutButton user={user} />
+    </div>
+  );
+}
+```
+
+---
+
+## UserProvider
+
+Wrapper component that fetches and sets user data on mount.
+
+```jsx Providers/UserProvider.jsx
+import { userStore } from "@/zustand/userStore";
+import { useAuth } from "@/hooks/auth";
+
+export default function UserProvider({ children }) {
+  const { user } = useAuth(); // Custom hook for fetching user
+  const { setUser } = userStore();
+  
+  useEffect(() => {
+    if (user) {
+      setUser(user);
+    }
+  }, [user, setUser]);
+  
+  return children;
+}
+```
+
+### useAuth Hook
+
+```jsx hooks/auth.js
+import useSWR from "swr";
+import axios from "axios";
+
+export function useAuth() {
+  const { data: user, error, mutate } = useSWR(
+    "/api/auth/user",
+    (url) => axios.get(url).then(({ data }) => data),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+  
+  return {
+    user,
+    isLoading: !error && !user,
+    isError: error,
+    mutate,
+  };
+}
+```
+
+---
+
+## UserLocation
+
+Component for detecting and storing user's country for region-specific content (watch providers).
+
+### Implementation
+
+```jsx User/Location.jsx
+import { USER_LOCATION } from "@/lib/constants";
+import { useLocation } from "@/zustand/location";
+import axios from "axios";
+
+export default function UserLocation({ children }) {
+  const { setLocation } = useLocation();
+  const [isLocationSaved, setIsLocationSaved] = useState(true);
+
+  useEffect(() => {
+    const userLocation = localStorage.getItem(USER_LOCATION);
+    
+    if (!userLocation) {
+      setIsLocationSaved(false);
+      return;
+    }
+
+    setLocation(JSON.parse(userLocation));
+    setIsLocationSaved(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLocationSaved) return;
+
+    const getLocationData = async () => {
+      const { data } = await axios.get(`https://ipinfo.io/json`);
+
+      const locationData = {
+        country_code: data.country,
+        country_name: new Intl.DisplayNames(["en"], { type: "region" })
+          .of(data.country),
+      };
+
+      setLocation(locationData);
+      localStorage.setItem(USER_LOCATION, JSON.stringify(locationData));
+      setIsLocationSaved(true);
+    };
+
+    getLocationData();
+  }, [isLocationSaved]);
+
+  return children;
+}
+```
+
+<Info>
+  Location is stored in localStorage to avoid repeated API calls and persists across sessions.
+</Info>
+
+---
+
+## Profile Components
+
+Components for displaying user's watchlist, favorites, and ratings.
+
+<CardGroup cols={3}>
+  <Card title="TileList" icon="grid-2">
+    Grid display for user's films
+  </Card>
+  
+  <Card title="Sort" icon="arrow-down-a-z">
+    Sort options for user lists
+  </Card>
+  
+  <Card title="User" icon="user">
+    Profile header with stats
+  </Card>
+</CardGroup>
+
+### TileList Usage
+
+```jsx
+<TileList
+  films={userWatchlist}
+  type="watchlist"
+  sort="date_added"
+/>
+```
+
+---
+
+## Authentication Flow
+
+<Steps>
+  <Step title="User clicks LoginButton">
+    Redirected to `/login?redirect_to=/current-page`
+  </Step>
+  
+  <Step title="User logs in with TMDB">
+    OAuth flow with TMDB authentication
+  </Step>
+  
+  <Step title="Session created">
+    Server creates session and stores user data
+  </Step>
+  
+  <Step title="UserProvider fetches user">
+    `useAuth` hook fetches user data and updates `userStore`
+  </Step>
+  
+  <Step title="UI updates">
+    LoginButton replaced with LogoutButton/avatar
+  </Step>
+</Steps>
+
+---
+
+## Key Files
+
+<CodeGroup>
+```text User Components
+src/components/
+├── User/
+│   ├── LoginButton.jsx
+│   ├── LogoutButton.jsx
+│   ├── Location.jsx
+│   ├── Actions/
+│   │   ├── FavoriteButton.jsx
+│   │   ├── WatchlistButton.jsx
+│   │   └── UserRating.jsx
+│   └── Profile/
+│       ├── User.jsx
+│       ├── TileList.jsx
+│       └── Sort.jsx
+├── Auth/
+│   └── LoginForm.jsx
+└── Providers/
+    └── UserProvider.jsx
+```
+
+```text State Management
+src/zustand/
+├── userStore.js       # Global user state
+└── location.js        # User location state
+
+src/hooks/
+└── auth.js            # useAuth hook
+```
+</CodeGroup>
+
+---
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="API Routes" href="/api/authentication">
+    Authentication and user action endpoints
+  </Card>
+  
+  <Card title="Film Components" href="/components/film">
+    Components that use user actions
+  </Card>
+</CardGroup>

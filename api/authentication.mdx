@@ -1,0 +1,259 @@
+---
+title: 'Authentication'
+description: 'Authentication endpoints for managing user sessions with TMDB'
+---
+
+The authentication API provides endpoints for managing user sessions using TMDB's authentication system. All authentication endpoints are rate-limited to 40 requests per 10 seconds.
+
+## Create Request Token
+
+Get a new authentication request token or retrieve an existing one from cookies.
+
+<CodeGroup>
+```bash GET /api/authentication/token/new
+curl -X GET https://your-domain.com/api/authentication/token/new
+```
+</CodeGroup>
+
+### Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="expires_at" type="string" required>
+  ISO 8601 timestamp when the token expires
+</ResponseField>
+
+<ResponseField name="request_token" type="string" required>
+  The authentication token to be used for validation
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "success": true,
+  "expires_at": "2026-03-03 12:00:00 UTC",
+  "request_token": "a1b2c3d4e5f6g7h8i9j0"
+}
+```
+
+### Behavior
+
+- If a valid token exists in cookies (less than 1 hour old), returns the existing token
+- Otherwise, creates a new request token and stores it in cookies with a 1-hour expiry
+- Token is stored in cookie named `TMDB_AUTH_TOKEN`
+
+---
+
+## Validate Token with Login
+
+Validate a request token with TMDB username and password credentials.
+
+<CodeGroup>
+```bash POST /api/authentication/token/validate_with_login
+curl -X POST https://your-domain.com/api/authentication/token/validate_with_login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "password": "your_password",
+    "request_token": "a1b2c3d4e5f6g7h8i9j0"
+  }'
+```
+</CodeGroup>
+
+### Body Parameters
+
+<ParamField body="username" type="string" required>
+  TMDB username
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  TMDB password
+</ParamField>
+
+<ParamField body="request_token" type="string" required>
+  The request token obtained from `/api/authentication/token/new`
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the validation was successful
+</ResponseField>
+
+<ResponseField name="expires_at" type="string" required>
+  ISO 8601 timestamp when the validated token expires
+</ResponseField>
+
+<ResponseField name="request_token" type="string" required>
+  The validated request token
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "success": true,
+  "expires_at": "2026-03-03 12:00:00 UTC",
+  "request_token": "a1b2c3d4e5f6g7h8i9j0"
+}
+```
+
+---
+
+## Create Session
+
+Create a new session ID from a validated request token.
+
+<CodeGroup>
+```bash POST /api/authentication/login
+curl -X POST https://your-domain.com/api/authentication/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_token": "a1b2c3d4e5f6g7h8i9j0"
+  }'
+```
+</CodeGroup>
+
+### Body Parameters
+
+<ParamField body="request_token" type="string" required>
+  The validated request token from `/api/authentication/token/validate_with_login`
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the session was created successfully
+</ResponseField>
+
+<ResponseField name="session_id" type="string" required>
+  The session ID for authenticated requests
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "success": true,
+  "session_id": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+}
+```
+
+### Behavior
+
+- Creates a new TMDB session from the validated request token
+- Stores session ID in a cookie named `TMDB_SESSION_ID`
+- Cookie expires after 1 year (maxAge: 365 days)
+- Session ID is required for all authenticated endpoints
+
+---
+
+## Delete Session (Logout)
+
+Delete the current session and clear authentication cookies.
+
+<CodeGroup>
+```bash DELETE /api/authentication/logout
+curl -X DELETE https://your-domain.com/api/authentication/logout
+```
+</CodeGroup>
+
+### Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the session was deleted successfully
+</ResponseField>
+
+### Response Example
+
+```json
+{
+  "success": true
+}
+```
+
+### Behavior
+
+- Deletes the session on TMDB servers
+- Removes `TMDB_SESSION_ID` cookie
+- Removes `TMDB_AUTH_TOKEN` cookie
+- User will need to re-authenticate for future requests
+
+---
+
+## Authentication Flow
+
+The complete authentication flow involves three steps:
+
+1. **Get Token**: Call `GET /api/authentication/token/new` to get a request token
+2. **Validate Token**: Call `POST /api/authentication/token/validate_with_login` with username, password, and the request token
+3. **Create Session**: Call `POST /api/authentication/login` with the validated request token to get a session ID
+
+Once authenticated, the session ID is stored in cookies and automatically included in subsequent requests.
+
+### Example Flow
+
+```javascript
+// Step 1: Get request token
+const tokenResponse = await fetch('/api/authentication/token/new');
+const { request_token } = await tokenResponse.json();
+
+// Step 2: Validate with credentials
+const validateResponse = await fetch('/api/authentication/token/validate_with_login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    username: 'your_username',
+    password: 'your_password',
+    request_token
+  })
+});
+
+// Step 3: Create session
+const loginResponse = await fetch('/api/authentication/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ request_token })
+});
+
+const { session_id } = await loginResponse.json();
+```
+
+---
+
+## Error Responses
+
+### Rate Limit Exceeded (429)
+
+```json
+"Rate Limit Exceeded"
+```
+
+Returned when the rate limit of 40 requests per 10 seconds is exceeded.
+
+### Authentication Failed (401)
+
+```json
+{
+  "success": false,
+  "status_code": 30,
+  "status_message": "Invalid username and/or password: You did not provide a valid login."
+}
+```
+
+Returned when username or password is incorrect.
+
+### Invalid Token (401)
+
+```json
+{
+  "success": false,
+  "status_code": 6,
+  "status_message": "Invalid request token: The token has not been granted write permission by the user."
+}
+```
+
+Returned when trying to create a session with an unvalidated token.
